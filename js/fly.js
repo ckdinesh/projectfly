@@ -13,6 +13,26 @@ function getMousePosition(evt) {
   };
 }
 
+function selectToolOption(evt){
+  console.log("evt.target " + evt.target)
+  if (evt.target instanceof SVGLineElement){
+    item_selected = {item:"0"};
+  } else if (evt.target instanceof SVGRectElement) {
+    item_selected = {item:"1"};
+  } else if (evt.target instanceof SVGCircleElement) {
+    item_selected = {item:"2"};
+  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Text") {
+    item_selected = {item:"3"};   
+  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Polyline") {
+    item_selected = {item:"4"};
+  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Ploygon") {
+    item_selected = {item:"5"}; 
+  } else {
+    item_selected = {};    
+  } ;
+  
+}
+
 // Onload on main SVG layout
 function setDraggable(evt) {
 
@@ -161,6 +181,34 @@ function setDraggable(evt) {
               x2 = null;
               y2 = null;
               colorSelected = "white";
+            } else if ( item_selected.item == "5"  && x2 == null && y2==null ) { 
+
+              var endPoint = getMousePosition(evt);
+              x2 = endPoint.x;
+              y2 = endPoint.y;
+              var x_mid = x2;
+              var y_mid = y1;
+              var points = " "+x1+","+y1+" "+x_mid+","+y_mid+" "+x2+","+y2+" ";
+              console.log("Polyline points : " + points);
+              console.log("startDrag > x2 > " + x2 + " y2 > " + y2);
+              const parent = document.getElementById("mainlayout");
+              const para = document.createElementNS('http://www.w3.org/2000/svg','polyline');  
+              para.setAttribute("points",points );
+              para.setAttribute("stroke", "white");
+              para.setAttribute("stroke-width", "3");
+              para.setAttribute("fill", "none");
+              para.setAttribute("marker-start", "url(#circle)");
+              para.setAttribute("marker-mid", "url(#circle)");
+              para.setAttribute("marker-end", "url(#arrow)");
+              para.textContent = document.getElementById("favtext").value;
+              parent.append(para);
+              console.log(para);       
+              item_selected = {};
+              x1 = null;
+              y1 = null;
+              x2 = null;
+              y2 = null;
+              colorSelected = "white";
 
             } else { 
             }
@@ -193,26 +241,6 @@ function setDraggable(evt) {
   }
 
 
-}
-
-function selectLine(evt){
-  console.log("evt.target " + evt.target)
-  if (evt.target instanceof SVGLineElement){
-    item_selected = {item:"0"};
-  } else if (evt.target instanceof SVGRectElement) {
-    item_selected = {item:"1"};
-  } else if (evt.target instanceof SVGCircleElement) {
-    item_selected = {item:"2"};
-  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Text") {
-    item_selected = {item:"3"};   
-  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Polyline") {
-    item_selected = {item:"4"};
-  } else if (evt.target instanceof SVGTextElement && evt.target.textContent == "Ploygon") {
-    item_selected = {item:"5"}; 
-  } else {
-    item_selected = {};    
-  } ;
-  
 }
 
 function changeColor(){

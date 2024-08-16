@@ -16,20 +16,13 @@
           <line id="line1" x1="40" y1="40" x2="60" y2="60" 
           style="stroke:white;stroke-width:1;" 
           class="draggable-selectable"
-          onclick="selectLine(evt)" />
-            <rect width="60" height="40" x="20" y="90" rx="5" ry="5" fill="white" class="draggable-selectable" onclick="selectLine(evt)" style="stroke:black;stroke-width:1;" />
-            <circle r="25" cx="50" cy="190" fill="white" class="draggable-selectable" onclick="selectLine(evt)" style="stroke:black;stroke-width:1;" />
-            
-            <text x="30" y="250" fill="white" class="draggable-selectable" onclick="selectLine(evt)"  >Text</text>
-
-            <text x="30" y="300" fill="white" class="draggable-selectable" onclick="selectLine(evt)" >Polyline</text>
-
-            <text x="30" y="350" fill="white" class="draggable-selectable" onclick="selectLine(evt)" >Polygon</text>
-
+          onclick="selectToolOption(evt)" />
+            <rect width="60" height="40" x="20" y="90" rx="5" ry="5" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" style="stroke:black;stroke-width:1;" />
+            <circle r="25" cx="50" cy="190" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" style="stroke:black;stroke-width:1;" />            
+            <text x="30" y="250" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)"  >Text</text>
+            <text x="30" y="300" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" >Polyline</text>
+            <text x="30" y="350" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" >Polygon</text>
             <text x="30" y="400" fill="white" class="draggable-selectable" onclick="ClearCanvas(evt)" >Clear</text>
-
-            
-
         </svg>
 
           <svg  id="mainlayout" height="600" width="1300" xmlns="http://www.w3.org/2000/svg"   
@@ -46,11 +39,10 @@
             
           </svg>
 
-<br/>
-            <label for="favcolor">Select your favorite color:</label>
-            <input type="color" id="favcolor" name="favcolor" value="#FFFFFF"  onchange="changeColor()">
-
-            <input type="text" id="favtext" name="favtext" value="Enter text here ">
+          <br/>
+          <label for="favcolor">Select your favorite color:</label>
+          <input type="color" id="favcolor" name="favcolor" value="#FFFFFF"  onchange="changeColor()">
+          <input type="text" id="favtext" name="favtext" value="Enter text here ">
 
 </body>
 </html>
