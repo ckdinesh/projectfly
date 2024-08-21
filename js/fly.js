@@ -2,6 +2,9 @@
 var child_selected = 0;
 var item_selected = {};
 var colorSelected = "white";
+var focusColor = "purple";
+
+var selectItems=[];
 
 // Get current mouse position
 function getMousePosition(evt) {
@@ -33,24 +36,42 @@ function selectToolOption(evt){
   
 }
 
+
+function setFocusColor(evt){
+  console.log(evt.target);
+  evt.target.setAttribute("style", "stroke:purple;stroke-width:2;fill:rgb(240,244,245)");
+}
+
 // Onload on main SVG layout
 function setDraggable(evt) {
 
   var selectedElement = false;
   var svg = evt.target;
-  svg.addEventListener('mousedown', startDrag);
-  svg.addEventListener('mousemove', drag);
+  svg.addEventListener('mousedown', onmouseclick);
+  svg.addEventListener('mousemove', onmousedrag);
   svg.addEventListener('mouseup', endDrag);
   svg.addEventListener('mouseleave', endDrag);  
   var x1,y1,x2,y2 = null ;
 
-  function startDrag(evt) {
+  function onmouseclick(evt) {
 
             colorSelected = document.getElementById("favcolor").value ;
-
             console.log("item_selected.item : " + item_selected.item);
 
-            if (x1 == null && y1 == null && x2 == null && y2==null){
+            if (evt.target instanceof SVGRectElement ) {
+              console.log("You selected a rectangle");
+              let w = parseFloat(evt.target.getAttribute("width"));
+              let h = parseFloat(evt.target.getAttribute("height"));
+              let x = parseFloat(evt.target.getAttribute("x"));
+              let y = parseFloat(evt.target.getAttribute("y"));
+              console.log(" Rect width : " + w);
+              console.log(" Rect height : " + h);
+              console.log("co-ordinates LT > (" + x+","+ y+") , RT > ("+ (x+w) + "," + y +") , RB > (" + (x+w) + "," + (y+h) + ") , LB > (" + x + "," + (y+h) + ")");
+              
+            }
+
+
+            if ( item_selected.item != undefined && x1 == null && y1 == null && x2 == null && y2==null){
 
               startPoint = getMousePosition(evt);
               x1 = startPoint.x;
@@ -63,6 +84,7 @@ function setDraggable(evt) {
               x2 = endPoint.x;
               y2 = endPoint.y;
               console.log("startDrag > x2 > " + x2 + " y2 > " + y2);
+
 
               const parent = document.getElementById("mainlayout");
               const para = document.createElementNS('http://www.w3.org/2000/svg','line');      
@@ -85,18 +107,23 @@ function setDraggable(evt) {
               var endPoint = getMousePosition(evt);
               x2 = endPoint.x;
               y2 = endPoint.y;
-              console.log("startDrag > x2 > " + x2 + " y2 > " + y2);
-
-              const rwidth = (x2 - x1) ;
+              console.log("startDrag before > x1:" + x1 + " y1:" + y1 + ", x2:" + x2 + " y2:" + y2);
+              let x_1 = Math.min(x1,x2);
+              let x_2 = Math.max(x1,x2);
+              let y_1 = Math.min(y1,y2);
+              let y_2 = Math.max(y1,y2);
+              console.log("startDrag after > x_1:" + x_1 + " y_1:" + y_1 + ", x2:" + x_2 + " y2:" + y_2);
+              const rwidth = (x_2 - x_1) ;
               console.log(rwidth);
-              const rheight = (y2 - y1) ; 
+              const rheight = (y_2 - y_1) ; 
               const parent = document.getElementById("mainlayout");
               const para = document.createElementNS('http://www.w3.org/2000/svg','rect');      
               para.setAttribute("width", rwidth);
               para.setAttribute("height", rheight);
-              para.setAttribute("x", x1);
-              para.setAttribute("y", y1);
+              para.setAttribute("x", x_1);
+              para.setAttribute("y", y_1);
               para.setAttribute("fill", colorSelected);
+              para.addEventListener('click', setFocusColor);
               parent.append(para);
               console.log(para);
               
@@ -211,6 +238,8 @@ function setDraggable(evt) {
               colorSelected = "white";
 
             } else { 
+
+              
             }
     
     
@@ -219,8 +248,7 @@ function setDraggable(evt) {
               offset = getMousePosition(evt);
             }
   }
-
-  function drag(evt) {
+  function onmousedrag(evt) {
     
     if (selectedElement) {
       evt.preventDefault();
