@@ -3,10 +3,12 @@ var child_selected = 0;
 var item_selected = {};
 var colorSelected = "white";
 var focusColor = "purple";
-
+var element_on_focus = undefined;
 var selectItems=[];
 
+
 // Get current mouse position
+// called from any event listeners
 function getMousePosition(evt) {
   var svg = evt.target;
   var CTM = svg.getScreenCTM();
@@ -16,6 +18,11 @@ function getMousePosition(evt) {
   };
 }
 
+
+
+
+//Called from palette tool 
+// onclick individual icons 
 function selectToolOption(evt){
   console.log("evt.target " + evt.target)
   if (evt.target instanceof SVGLineElement){
@@ -36,13 +43,13 @@ function selectToolOption(evt){
   
 }
 
-
+//Only for rect selection setting border colour to highlight
 function setFocusColor(evt){
   console.log(evt.target);
   evt.target.setAttribute("style", "stroke:purple;stroke-width:2;fill:rgb(240,244,245)");
 }
 
-// Onload on main SVG layout
+// Onload on main SVG layout in html
 function setDraggable(evt) {
 
   var selectedElement = false;
@@ -51,7 +58,62 @@ function setDraggable(evt) {
   svg.addEventListener('mousemove', onmousedrag);
   svg.addEventListener('mouseup', endDrag);
   svg.addEventListener('mouseleave', endDrag);  
+  svg.addEventListener('dblclick', addtext);  
   var x1,y1,x2,y2 = null ;
+
+  //Inside setDraggable
+  function textadd(val,x, y, shade){
+    const txt = document.createElementNS('http://www.w3.org/2000/svg','text');      
+    txt.setAttribute("x", x);
+    txt.setAttribute("y", y);
+    txt.setAttribute("fill", shade);
+    txt.setAttribute("font-size", 35);
+    txt.textContent = val;
+    return txt;
+  }
+
+   //Inside setDraggable
+  function addtext(evt){
+
+    var e = evt.target;
+    var p = document.getElementById("mainlayout");
+
+    if (e instanceof SVGRectElement || e instanceof SVGCircleElement){
+      console.log(" Inside dblclick" + e);
+
+      let w = parseFloat(evt.target.getAttribute("width"));
+      let h = parseFloat(evt.target.getAttribute("height"));
+      let x = parseFloat(evt.target.getAttribute("x"));
+      let y = parseFloat(evt.target.getAttribute("y"));
+
+      const frgn = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');      
+      frgn.setAttribute("x", x + 50);
+      frgn.setAttribute("y", y + 100);
+      frgn.setAttribute("width", w);
+      frgn.setAttribute("height", h);
+      p.append(frgn);
+      
+      const ta = document.createElement("textarea");  
+      ta.setAttribute("style", "color: purple ;"); 
+      ta.addEventListener("focusout", (event) => {    
+        
+            const ta_value = ta.value;
+            frgn.remove();
+            const grp = document.createElementNS('http://www.w3.org/2000/svg','g');      
+            grp.append(e);
+            const t = textadd(ta_value, x +10 , y +50  , "purple");
+            grp.append(t);
+            p.append(grp);
+
+
+
+      });
+      // ta.setAttribute("cols", 2);    
+      frgn.append(ta);
+
+    }
+
+  }
 
   function onmouseclick(evt) {
 
