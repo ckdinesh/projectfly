@@ -1,3 +1,4 @@
+
 //Globals declared
 var child_selected = 0;
 var item_selected = {};
@@ -341,60 +342,6 @@ function changeColor(){
 // calls innerHTML to remove childs.
 function ClearCanvas(evt){
   document.getElementById("mainlayout").innerHTML = "";
-}
-
-// *****************Deprecated******************
-// Highlight the line with child circle at both ends
-// based on location 
-function changeLine(a,b){
-
-   var c1 = document.getElementById(a);
-   var c2 = document.getElementById(b);
-  //  console.log(c1 + " - " + c2)
-   if (child_selected == 0) {
-
-   c1.style.opacity = "0.5";
-   c2.style.opacity = "0.5";
-   c1.setAttribute("fill","yellow" ) ;
-   c2.setAttribute("fill","yellow" ) ;
-   }
-}
-
-// *****************Deprecated******************
-// Highlight the line with child circle at both ends
-// based on location 
-function clearLine(a,b){
-  var c1 = document.getElementById(a);
-  var c2 = document.getElementById(b);
-
-  if (child_selected == 0) {
-
-    c1.style.opacity = "0.0";
-    c2.style.opacity = "0.0";
-    c1.setAttribute("fill","yellow" ) ;
-    c2.setAttribute("fill","yellow" ) ;
-
-  }
-
-}
-
-// *****************Deprecated******************
-// Highlight the line with child circle at both ends
-// based on location 
-function clickLine(a,b){
-  var c1 = document.getElementById(a);
-  var c2 = document.getElementById(b);
-  
-  if(child_selected == 0 ){
-    child_selected = 1;
-    c1.style.opacity = "0.9";
-    c2.style.opacity = "0.9";
-    c1.setAttribute("fill","red" ) ;
-    c2.setAttribute("fill","red" ) ;
-  } else {
-    child_selected = 0;
-    changeLine(a,b)
-  }
 }
 
 

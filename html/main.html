@@ -26,12 +26,11 @@
             <!-- <text x="30" y="250" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)"  >Text</text> -->
             <!-- <text x="30" y="300" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" >Polyline</text> -->
             <!-- <text x="30" y="350" fill="white" class="draggable-selectable" onclick="selectToolOption(evt)" >Polygon</text> -->
-            <text x="30" y="350" fill="white" class="draggable-selectable" onclick="ClearCanvas(evt)" >Clear</text>
+            <!-- <text x="30" y="300" fill="white" class="draggable-selectable" onclick="ClearCanvas(evt)" >Clear</text> -->
         </svg>
 
-          <svg  id="mainlayout" height="600" width="1300" xmlns="http://www.w3.org/2000/svg"   
+        <svg  id="mainlayout" height="600" width="1300" xmlns="http://www.w3.org/2000/svg"   
           onload="setDraggable(evt)"  style="background-color:rgb(22, 25, 43); ">
-
           <defs>
             <marker id="circle" markerWidth="8" markerHeight="8" refX="5" refY="5">
               <circle cx="5" cy="5" r="2" fill="white" />
@@ -39,17 +38,14 @@
             <marker id="arrow" markerWidth="10" markerHeight="10" refX="5" refY="5" orient="auto">
               <path d="M 0 0 L 10 5 L 0 10 z" fill="white" />
             </marker>
-          </defs> 
-          
-      
-            
-          </svg>
+          </defs>   
+        </svg>
 
 
-          <br/>
+          <!-- <br/>
           <label for="favcolor">Select your favorite color:</label>
           <input type="color" id="favcolor" name="favcolor" value="#FFFFFF"  onchange="changeColor()">
-          <input type="text" id="favtext" name="favtext" value="Enter text here ">
+          <input type="text" id="favtext" name="favtext" value="Enter text here "> -->
 
 </body>
 </html>
