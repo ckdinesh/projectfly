@@ -85,8 +85,11 @@ function init(){
     const svg_palette = document.getElementById("palette"); 
     const svg = document.getElementById("mainlayout"); 
     svg_palette.addEventListener('mousedown', Renderer.SVGOnclick); 
-    svg.addEventListener('mousemove', Renderer.SVGOnMove);
-    // svg.addEventListener('mouseup', Renderer.SVGUp);
+    svg.addEventListener('mousedown', Renderer.SVGstartDrag);
+    //svg.addEventListener('mousemove', Renderer.SVGdrag);
+    // svg.addEventListener('mouseup', Renderer.SVGendDrag);
+    // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
+
 
     console.log("Initializing started..."); 
 
@@ -207,6 +210,18 @@ class Renderer {
         const svg = document.getElementById("mainlayout"); 
         Renderer.create(svg,loc);
         
+    }
+
+    static SVGstartDrag(evt){
+
+        selectedElement = evt.target;
+        offset = getMousePosition(evt);
+
+        let transforms = selectedElement.transform.baseVal;
+
+
+
+
     }
 
     static create(s,l){
