@@ -84,7 +84,7 @@ function init(){
 
     const svg_palette = document.getElementById("palette"); 
     const svg = document.getElementById("mainlayout"); 
-    svg_palette.addEventListener('mousedown', Renderer.SVGOnclick); 
+    svg.addEventListener('mousedown', Renderer.SVGOnclick); 
     svg.addEventListener('mousedown', Renderer.SVGstartDrag);
     //svg.addEventListener('mousemove', Renderer.SVGdrag);
     // svg.addEventListener('mouseup', Renderer.SVGendDrag);
@@ -96,7 +96,7 @@ function init(){
 
     for (const key in palette_items) {
             let i = palette_items[key];
-            const g = new GridLayout("palette","v", 60, 70);
+            const g = new GridLayout("mainlayout","v", 60, 70);
             const gXY = g.buildGridXY();
             console.log(gXY);
             if ( gXY.hasOwnProperty(key)){
@@ -124,7 +124,7 @@ function init(){
                 console.log(i);
                 const grp_el = new Renderer(s.prep());  
                 console.log(grp_el);
-                svg_palette.append(grp_el.draw());  
+                svg.append(grp_el.draw());  
             }
                         
     };             
@@ -256,8 +256,8 @@ class GridLayout {
     lotSize(){
 
         const el = document.getElementById(this.containerId); 
-        const w = GA(el,'width');
-        const h = GA(el,'height');
+        const w = 100;
+        const h = 600;
         let s = null;
 
         if (this.axis == "v"){
@@ -273,8 +273,8 @@ class GridLayout {
     buildGridXY(){
 
         const el = document.getElementById(this.containerId); 
-        const w = GA(el,'width');
-        const h = GA(el,'height');
+        const w = 100;
+        const h = 600;
 
         let gridXY = {};
         let x, y , cx, cy = undefined;
