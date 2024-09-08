@@ -86,6 +86,7 @@ function init(){
     const svg = document.getElementById("mainlayout"); 
     svg_palette.addEventListener('mousedown', Renderer.SVGOnclick); 
     svg.addEventListener('mousemove', Renderer.SVGOnMove);
+    svg.addEventListener('mouseup', Renderer.SVGUp);
 
     console.log("Initializing started..."); 
 
@@ -289,6 +290,7 @@ class GridLayout {
 
         };
         return gridXY;
+
         
     }
 }
