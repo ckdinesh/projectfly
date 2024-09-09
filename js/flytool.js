@@ -1,7 +1,3 @@
-/*
-    Only for tool palette
-*/
-
 //tool palette shapes declare
 const json_palette =    `{  
                             "item1" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 70 ,"rx":"30","ry":30, "s" : 0 , "f": "rgb(84,141,68)" , "sw" : 0 , "name": "START" },
@@ -20,6 +16,8 @@ const angle =   {
 var palette_items = JSON.parse(json_palette);
 var currentElementSelection = undefined;
 const selectionStyle = {"stroke":"yellow","stroke-width":"5","stroke-opacity":"0.4"};
+var selectedElement, offset, transform = undefined;
+const PALETTE_SIZE = {"WIDTH": 100 , "HEIGHT" : 600};
 
 
 function CE(type){
@@ -82,23 +80,23 @@ window.onload = init;
    
 function init(){
 
-    const svg_palette = document.getElementById("palette"); 
+    //const svg_palette = document.getElementById("palette"); 
     const svg = document.getElementById("mainlayout"); 
-    svg.addEventListener('mousedown', Renderer.SVGOnclick); 
-    svg.addEventListener('mousedown', Renderer.SVGstartDrag);
-    //svg.addEventListener('mousemove', Renderer.SVGdrag);
-    // svg.addEventListener('mouseup', Renderer.SVGendDrag);
+    
+
+    svg.addEventListener('mousedown', ActionListener.SVGStartDrag);
+    svg.addEventListener('mousemove', ActionListener.SVGDrag);
+    svg.addEventListener('mouseup', ActionListener.SVGEndDrag);
     // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
 
 
     console.log("Initializing started..."); 
 
-
+    const g = new GridLayout("mainlayout","v", 60, 70);
+    const gXY = g.buildGridXY();
+    console.log(gXY);
     for (const key in palette_items) {
-            let i = palette_items[key];
-            const g = new GridLayout("mainlayout","v", 60, 70);
-            const gXY = g.buildGridXY();
-            console.log(gXY);
+            let i = palette_items[key];            
             if ( gXY.hasOwnProperty(key)){
                 console.log(key + " - key found")
                 if(i.hasOwnProperty('x')) {
@@ -132,6 +130,8 @@ function init(){
     
 }
 
+///Create SVG element properties for a shape defined in input item object
+//Step 1
 class Shape {
     constructor(item){
         this.item = item;
@@ -150,6 +150,7 @@ class Shape {
     }
 }
 
+//Step 3
 class Renderer {
     constructor(data){
         this.data = data;
@@ -163,9 +164,9 @@ class Renderer {
             if(k == "type" || k == "name") {continue};
             SA(e,k,d[k]);
         }     
-        SA(e,"onclick", "Renderer.itemSelected(event)")  ;
+        // SA(e,"onclick", "Renderer.itemSelected(event)")  ;
         SA(e,"id", random());
-        SA(e,"class","draggable-selectable");
+        SA(e,"class","draggable-selectable draggable");
         const grp = innerDisplay(e, this.data.name , this.data.x + 5, this.data.y + 15 );
         // console.log(grp);
         return grp;
@@ -198,44 +199,91 @@ class Renderer {
             } 
         }         
     }
-    static SVGOnclick(evt){
+   
 
-        //Renderer.itemDeselect();
-    }
-    static SVGOnMove(evt){
 
-        //Renderer.itemDeselect();
-        const loc = getMousePosition(evt);
-        console.log("Point : " + loc.x + "," + loc.y);
-        const svg = document.getElementById("mainlayout"); 
-        Renderer.create(svg,loc);
+
+}
+
+//Step 4
+class ActionListener{
+
+
+    static create(){
+
+        const e = document.getElementById(currentElementSelection);
+        var svg = document.getElementById("mainlayout"); 
+        if (e !== null){
+            console.log(e);
+            console.log("currentElementSelection :" +currentElementSelection);
+            const cnode = e.cloneNode(false);
+            //RA(cnode, "class");
+            //RA(cnode , "id");
+            SA(cnode, "class" , "zindex0 draggable");
+            SA(cnode,"id", random());
+            SA(cnode,"x", 150);
+            SA(cnode,"y", 100);
+            console.log(cnode);
+            svg.append(cnode);
+            return cnode;
+        }
         
     }
 
-    static SVGstartDrag(evt){
+    static SVGStartDrag(evt){
 
-        selectedElement = evt.target;
-        offset = getMousePosition(evt);
+        if (evt.target.classList.contains('draggable')){
+                console.log("Inside SVGStartDrag");  
+                Renderer.itemSelected(evt);
+                
+                const loc = getMousePosition(evt);
+                // console.log("Point : " + loc.x + "," + loc.y);
+                const svg = document.getElementById("mainlayout");   
+                selectedElement = ActionListener.create();
+                offset = getMousePosition(evt);
+                let tfm = selectedElement.transform.baseVal;
+                // console.log("Inside SVGStartDrag length : " + tfm.length + ", offsetx:" + offset.x +", offsety:" + offset.y);
 
-        let transforms = selectedElement.transform.baseVal;
+                if (tfm.length === 0 || tfm.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
 
+                    var translate = svg.createSVGTransform();
+                    translate.setTranslate(0, 0);
+                    // Add the translation to the front of the transforms list
+                    selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+                }
 
+                transform = tfm.getItem(0);
+                offset.x -= transform.matrix.e;
+                offset.y -= transform.matrix.f;
+                console.log("SVGStartDrag :" + transform);
 
+        }
 
     }
 
-    static create(s,l){
+    static SVGDrag(evt){
+        console.log("Inside SVGDrag"); 
+        console.log("SVGDrag : " + transform); 
 
-        const e = document.getElementById(currentElementSelection);
-
-        if (e !== null){
-            const cnode = e.cloneNode(true);
-            console.log("Inside create");
-            console.log(cnode);
-            SA(cnode,'x', l.x - 5);
-            SA(cnode,'y', l.y - 5 );
-            // s.append(cnode);
+        if (currentElementSelection !== undefined){
+ 
+            evt.preventDefault();
+            var coord = getMousePosition(evt);
+            transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
         }
+
+    }
+
+    static SVGEndDrag(evt){
+
+        evt.preventDefault();
+        var coord = getMousePosition(evt);
+        transform.setTranslate(coord.x, coord.y);
+        console.log("Inside SVGEndDrag"); 
+        currentElementSelection = undefined;
+        offset = undefined;
+        selectedElement= undefined; 
+        transform= undefined;
 
 
     }
@@ -243,7 +291,7 @@ class Renderer {
 
 }
 
-
+//Step 2
 class GridLayout {
 
     constructor(containerId , axis ,itmWidth, itmHeight ){
@@ -253,11 +301,12 @@ class GridLayout {
         this.itmHeight = itmHeight + 4 ;
     }
 
+    // Generate max size of cells based on SVG width and height 
     lotSize(){
 
         const el = document.getElementById(this.containerId); 
-        const w = 100;
-        const h = 600;
+        const w = PALETTE_SIZE.WIDTH;
+        const h = PALETTE_SIZE.HEIGHT;
         let s = null;
 
         if (this.axis == "v"){
@@ -269,12 +318,14 @@ class GridLayout {
         }
         return s;
     }
-    
+
+
+    // Creates an object with  item map and x,y,cx,cy coordinates
     buildGridXY(){
 
         const el = document.getElementById(this.containerId); 
-        const w = 100;
-        const h = 600;
+        const w = PALETTE_SIZE.WIDTH;
+        const h = PALETTE_SIZE.HEIGHT;
 
         let gridXY = {};
         let x, y , cx, cy = undefined;
@@ -291,14 +342,18 @@ class GridLayout {
                 } 
             }
             else{
+                
+                
                 if (this.axis == "v"){
                     y += this.itmHeight;
                 } else if (this.axis == "h") {
                     x += this.itmWidth;                
                 } 
+
+
             }  
             cx = x + (this.itmWidth/ 2);
-            cy = y +  (this.itmHeight/ 2);
+            cy = y + (this.itmHeight/ 2);
 
             let key =  `item${i+1}`;
             gridXY[key] = {x,y, cx , cy };

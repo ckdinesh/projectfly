@@ -7,3 +7,8 @@
   .draggable-selectable {
     cursor: move;    
   }
+
+  .zindex0 {
+    position: absolute;
+    z-index: 0;
+  }
