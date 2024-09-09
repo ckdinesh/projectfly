@@ -219,7 +219,7 @@ class ActionListener{
             const cnode = e.cloneNode(false);
             //RA(cnode, "class");
             //RA(cnode , "id");
-            SA(cnode, "class" , "zindex0 draggable");
+            SA(cnode, "class" , "zindex0 draggable cloned");
             SA(cnode,"id", random());
             SA(cnode,"x", 150);
             SA(cnode,"y", 100);
@@ -229,6 +229,7 @@ class ActionListener{
         }
         
     }
+    
 
     static SVGStartDrag(evt){
 
@@ -239,6 +240,7 @@ class ActionListener{
                 const loc = getMousePosition(evt);
                 // console.log("Point : " + loc.x + "," + loc.y);
                 const svg = document.getElementById("mainlayout");   
+                if 
                 selectedElement = ActionListener.create();
                 offset = getMousePosition(evt);
                 let tfm = selectedElement.transform.baseVal;
