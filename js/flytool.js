@@ -84,9 +84,9 @@ function init(){
     const svg = document.getElementById("mainlayout"); 
     
 
-    svg.addEventListener('mousedown', ActionListener.SVGStartDrag);
-    svg.addEventListener('mousemove', ActionListener.SVGDrag);
-    svg.addEventListener('mouseup', ActionListener.SVGEndDrag);
+    svg.addEventListener('mousedown', SVGStartDrag);
+    svg.addEventListener('mousemove', SVGDrag);
+    svg.addEventListener('mouseup', SVGEndDrag);
     // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
 
 
@@ -190,6 +190,7 @@ class Renderer {
             currentElementSelection = el.getAttribute("id");
         } 
     }
+    // issue -- check for event bubbling
     static itemDeselect(){
         console.log("Inside itemDeselect : " + currentElementSelection);
         const e = document.getElementById(currentElementSelection);
@@ -205,93 +206,97 @@ class Renderer {
 
 }
 
-//Step 4
-class ActionListener{
 
 
-    static create(){
+function create(){
 
-        const e = document.getElementById(currentElementSelection);
-        var svg = document.getElementById("mainlayout"); 
-        if (e !== null){
-            console.log(e);
-            console.log("currentElementSelection :" +currentElementSelection);
-            const cnode = e.cloneNode(false);
-            //RA(cnode, "class");
-            //RA(cnode , "id");
-            SA(cnode, "class" , "zindex0 draggable cloned");
-            SA(cnode,"id", random());
-            SA(cnode,"x", 150);
-            SA(cnode,"y", 100);
-            console.log(cnode);
-            svg.append(cnode);
-            return cnode;
-        }
-        
+    const e = document.getElementById(currentElementSelection);
+    var svg = document.getElementById("mainlayout"); 
+    if (e !== null){
+        console.log(e);
+        console.log("currentElementSelection :" +currentElementSelection);
+        const cnode = e.cloneNode(true);
+        SA(cnode, "class" , "draggable cloned");
+        SA(cnode,"id", random());
+        // Need to change to get location x and y as per the palette shape coordinates in below x and y
+        //recheck already covered
+        //SA(cnode,"x", 0);
+        //SA(cnode,"y", 0);
+        console.log(cnode);
+        svg.append(cnode);
+        return cnode;
     }
     
+}
+    
 
-    static SVGStartDrag(evt){
+function SVGStartDrag(evt){
 
-        if (evt.target.classList.contains('draggable')){
-                console.log("Inside SVGStartDrag");  
-                Renderer.itemSelected(evt);
+    if (evt.target.classList.contains('draggable')){
+            console.log("Inside SVGStartDrag");  
+            Renderer.itemSelected(evt);
+            
+            const loc = getMousePosition(evt);
+            // console.log("Point : " + loc.x + "," + loc.y);
+            const svg = document.getElementById("mainlayout");   
+            
+            
+            selectedElement = create();     
                 
-                const loc = getMousePosition(evt);
-                // console.log("Point : " + loc.x + "," + loc.y);
-                const svg = document.getElementById("mainlayout");   
-                if 
-                selectedElement = ActionListener.create();
-                offset = getMousePosition(evt);
-                let tfm = selectedElement.transform.baseVal;
-                // console.log("Inside SVGStartDrag length : " + tfm.length + ", offsetx:" + offset.x +", offsety:" + offset.y);
+            offset = getMousePosition(evt);
 
-                if (tfm.length === 0 || tfm.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
+            let tfm = selectedElement.transform.baseVal;
+            // console.log("Inside SVGStartDrag length : " + tfm.length + ", offsetx:" + offset.x +", offsety:" + offset.y);
 
-                    var translate = svg.createSVGTransform();
-                    translate.setTranslate(0, 0);
-                    // Add the translation to the front of the transforms list
-                    selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-                }
+            if (tfm.length === 0 || tfm.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
 
-                transform = tfm.getItem(0);
-                offset.x -= transform.matrix.e;
-                offset.y -= transform.matrix.f;
-                console.log("SVGStartDrag :" + transform);
+                var translate = svg.createSVGTransform();
+                translate.setTranslate(0, 0);
+                // Add the translation to the front of the transforms list
+                selectedElement.transform.baseVal.insertItemBefore(translate, 0);
+            }
 
-        }
+            transform = tfm.getItem(0);
+            offset.x -= transform.matrix.e;
+            offset.y -= transform.matrix.f;
+            console.log("SVGStartDrag :" + transform);
 
     }
 
-    static SVGDrag(evt){
-        console.log("Inside SVGDrag"); 
-        console.log("SVGDrag : " + transform); 
+}
+
+function SVGDrag(evt){
+
+    if (evt.target.classList.contains('draggable')){
+    console.log("Inside SVGDrag"); 
+    console.log("SVGDrag : " + transform); 
 
         if (currentElementSelection !== undefined){
- 
+
             evt.preventDefault();
             var coord = getMousePosition(evt);
             transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
         }
-
     }
-
-    static SVGEndDrag(evt){
-
-        evt.preventDefault();
-        var coord = getMousePosition(evt);
-        transform.setTranslate(coord.x, coord.y);
-        console.log("Inside SVGEndDrag"); 
-        currentElementSelection = undefined;
-        offset = undefined;
-        selectedElement= undefined; 
-        transform= undefined;
-
-
-    }
-
 
 }
+
+function SVGEndDrag(evt){
+
+    evt.preventDefault();
+    var coord = getMousePosition(evt);
+    transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
+    console.log("Inside SVGEndDrag"); 
+    currentElementSelection = undefined;
+    offset = undefined;
+    selectedElement= undefined; 
+    transform= undefined;
+    Renderer.itemDeselect();
+
+}
+
+
+
 
 //Step 2
 class GridLayout {
