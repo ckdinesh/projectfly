@@ -184,15 +184,19 @@ class Renderer {
             SA(el,"class", "draggable-selected draggable"); 
             currentElementSelection = eid ; 
         } 
-        Renderer.itemDeselect();
+        Renderer.itemDeselect(false);
     }
 
-    static itemDeselect(){
+    static itemDeselect(a){
 
-        const e = document.getElementById(currentElementSelection);    
+        if (a == true){
+            currentElementSelection = undefined;
+        }
+
         const nodes = document.querySelectorAll(".draggable-selected");
         for ( let i = 0 ; i< nodes.length ; i++){
             const id = GA(nodes[i], "id");
+
             if ( id !==  currentElementSelection ){
                 SA(nodes[i], "class", "draggable");
             }           
@@ -230,6 +234,12 @@ function SVGStartDrag(evt){
 
     const e = evt.target;
     const id = GA(e,"id");
+
+    console.log("Inside SVGStartDrag : id :" + id);
+
+    if( id === "mainlayout") {
+        Renderer.itemDeselect(true);
+    }
 
     if (e.classList.contains('draggable')){
             console.log("Inside If of SVGStartDrag ");  
@@ -288,7 +298,7 @@ function SVGEndDrag(evt){
     offset = undefined;
     selectedElement= undefined; 
     gtfm= undefined;
-    Renderer.itemDeselect();
+    Renderer.itemDeselect(false);
     currentElementSelection = undefined;
 
 }
