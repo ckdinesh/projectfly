@@ -14,11 +14,69 @@ const angle =   {
                 };
 
 var palette_items = JSON.parse(json_palette);
+
+
 var currentElementSelection = undefined;
 const selectionStyle = {"stroke":"yellow","stroke-width":"5","stroke-opacity":"0.4"};
-var selectedElement, offset, transform = undefined;
+var selectedElement, offset, gtfm = undefined;
+
 const PALETTE_SIZE = {"WIDTH": 100 , "HEIGHT" : 600};
 
+
+window.onload = init;
+    
+function init(){
+
+    //const svg_palette = document.getElementById("palette"); 
+    const svg = document.getElementById("mainlayout"); 
+    
+
+    svg.addEventListener('mousedown', SVGStartDrag);
+    svg.addEventListener('mousemove', SVGDrag);
+    svg.addEventListener('mouseup', SVGEndDrag);
+    // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
+
+
+    console.log("Initializing started..."); 
+    
+    var g = new GridLayout("mainlayout","v", 60, 70);
+    var gXY = g.buildGridXY();
+
+    console.log(gXY);
+    for (const key in palette_items) {
+            let i = palette_items[key];            
+            if ( gXY.hasOwnProperty(key)){
+                console.log(key + " - key found")
+                if(i.hasOwnProperty('x')) {
+                    console.log(i['x']);
+                    console.log(gXY[key]['x']);
+                    i['x'] = gXY[key]['x'];
+                    i['y'] = gXY[key]['y'];
+                } else if (i.hasOwnProperty('cx') ){
+                    console.log(i['cx']);
+                    console.log(gXY[key]['cx']);
+                    i['cx'] = gXY[key]['cx'];
+                    i['cy'] = gXY[key]['cy'];
+                } else if (i.hasOwnProperty('x1') ){
+                    console.log(i['x1']);
+                    console.log(gXY[key]['x']);
+                    i['x1'] = gXY[key]['x'];
+                    i['y1'] = gXY[key]['y'];
+                    i['x2'] = gXY[key]['x'] + g.itmWidth;
+                    i['y2'] = gXY[key]['y'] + g.itmHeight;
+                    
+                }
+                const s = new Shape(i);
+                console.log(i);
+                const grp_el = new Renderer(key, s.prep());  
+                console.log(grp_el);
+                svg.append(grp_el.draw());  
+            }
+                        
+    };             
+    console.log("Initializing complete...");   
+    
+}
 
 function CE(type){
     const e = document.createElementNS('http://www.w3.org/2000/svg',type);
@@ -74,62 +132,6 @@ function textadd(val,x, y, shade){
     return txt;
   }
 
-window.onload = init;
-
-
-   
-function init(){
-
-    //const svg_palette = document.getElementById("palette"); 
-    const svg = document.getElementById("mainlayout"); 
-    
-
-    svg.addEventListener('mousedown', SVGStartDrag);
-    svg.addEventListener('mousemove', SVGDrag);
-    svg.addEventListener('mouseup', SVGEndDrag);
-    // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
-
-
-    console.log("Initializing started..."); 
-
-    const g = new GridLayout("mainlayout","v", 60, 70);
-    const gXY = g.buildGridXY();
-    console.log(gXY);
-    for (const key in palette_items) {
-            let i = palette_items[key];            
-            if ( gXY.hasOwnProperty(key)){
-                console.log(key + " - key found")
-                if(i.hasOwnProperty('x')) {
-                    console.log(i['x']);
-                    console.log(gXY[key]['x']);
-                    i['x'] = gXY[key]['x'];
-                    i['y'] = gXY[key]['y'];
-                } else if (i.hasOwnProperty('cx') ){
-                    console.log(i['cx']);
-                    console.log(gXY[key]['cx']);
-                    i['cx'] = gXY[key]['cx'];
-                    i['cy'] = gXY[key]['cy'];
-                } else if (i.hasOwnProperty('x1') ){
-                    console.log(i['x1']);
-                    console.log(gXY[key]['x']);
-                    i['x1'] = gXY[key]['x'];
-                    i['y1'] = gXY[key]['y'];
-                    i['x2'] = gXY[key]['x'] + g.itmWidth;
-                    i['y2'] = gXY[key]['y'] + g.itmHeight;
-                   
-                }
-                const s = new Shape(i);
-                console.log(i);
-                const grp_el = new Renderer(s.prep());  
-                console.log(grp_el);
-                svg.append(grp_el.draw());  
-            }
-                        
-    };             
-    console.log("Initializing complete...");   
-    
-}
-
 ///Create SVG element properties for a shape defined in input item object
 //Step 1
 class Shape {
@@ -152,7 +154,8 @@ class Shape {
 
 //Step 3
 class Renderer {
-    constructor(data){
+    constructor(item_name ,data){
+        this.item_name = item_name;
         this.data = data;
     }
 
@@ -164,46 +167,38 @@ class Renderer {
             if(k == "type" || k == "name") {continue};
             SA(e,k,d[k]);
         }     
-        // SA(e,"onclick", "Renderer.itemSelected(event)")  ;
-        SA(e,"id", random());
-        SA(e,"class","draggable-selectable draggable");
+        SA(e,"onclick", "Renderer.itemSelected(event)")  ;
+        SA(e,"id", `${this.item_name}-${random()}`);
+        SA(e,"class","draggable");
         const grp = innerDisplay(e, this.data.name , this.data.x + 5, this.data.y + 15 );
         // console.log(grp);
         return grp;
     }
 
     static itemSelected(evt){
-
+        
         const el = evt.target; 
-        const eid = el.getAttribute("id");        
-        const epv = document.getElementById(currentElementSelection);
-
+        const eid = GA(el,"id") ;
+        console.log("Inside itemSelected : " + currentElementSelection);
         if (currentElementSelection == null || currentElementSelection != eid){
-            for (let k in selectionStyle){
-                SA(el,k,selectionStyle[k]);
-            }  
-            if ( currentElementSelection != eid && currentElementSelection != null){
-                for (let k in selectionStyle){ 
-                    RA(epv,k);
-                } 
-            }  
-            currentElementSelection = el.getAttribute("id");
+            SA(el,"class", "draggable-selected draggable"); 
+            currentElementSelection = eid ; 
         } 
+        Renderer.itemDeselect();
     }
-    // issue -- check for event bubbling
+
     static itemDeselect(){
-        console.log("Inside itemDeselect : " + currentElementSelection);
-        const e = document.getElementById(currentElementSelection);
-        if ( currentElementSelection != undefined){
-            for (let k in selectionStyle){
-                RA(e,k);
-            } 
-        }         
+
+        const e = document.getElementById(currentElementSelection);    
+        const nodes = document.querySelectorAll(".draggable-selected");
+        for ( let i = 0 ; i< nodes.length ; i++){
+            const id = GA(nodes[i], "id");
+            if ( id !==  currentElementSelection ){
+                SA(nodes[i], "class", "draggable");
+            }           
+        }
+        
     }
-   
-
-
-
 }
 
 
@@ -216,7 +211,7 @@ function create(){
         console.log(e);
         console.log("currentElementSelection :" +currentElementSelection);
         const cnode = e.cloneNode(true);
-        SA(cnode, "class" , "draggable cloned");
+        SA(cnode, "class" , "draggable-selected draggable");
         SA(cnode,"id", random());
         // Need to change to get location x and y as per the palette shape coordinates in below x and y
         //recheck already covered
@@ -224,6 +219,7 @@ function create(){
         //SA(cnode,"y", 0);
         console.log(cnode);
         svg.append(cnode);
+        currentElementSelection = GA(cnode,"id");
         return cnode;
     }
     
@@ -232,16 +228,18 @@ function create(){
 
 function SVGStartDrag(evt){
 
-    if (evt.target.classList.contains('draggable')){
-            console.log("Inside SVGStartDrag");  
-            Renderer.itemSelected(evt);
+    const e = evt.target;
+    const id = GA(e,"id");
+
+    if (e.classList.contains('draggable')){
+            console.log("Inside If of SVGStartDrag ");  
+            console.log(evt.target);
             
             const loc = getMousePosition(evt);
             // console.log("Point : " + loc.x + "," + loc.y);
-            const svg = document.getElementById("mainlayout");   
+            const svg = document.getElementById("mainlayout");              
             
-            
-            selectedElement = create();     
+            selectedElement = create();    
                 
             offset = getMousePosition(evt);
 
@@ -256,10 +254,10 @@ function SVGStartDrag(evt){
                 selectedElement.transform.baseVal.insertItemBefore(translate, 0);
             }
 
-            transform = tfm.getItem(0);
-            offset.x -= transform.matrix.e;
-            offset.y -= transform.matrix.f;
-            console.log("SVGStartDrag :" + transform);
+            gtfm = tfm.getItem(0);
+            offset.x -= gtfm.matrix.e;
+            offset.y -= gtfm.matrix.f;
+            console.log("SVGStartDrag :" + gtfm);
 
     }
 
@@ -269,13 +267,13 @@ function SVGDrag(evt){
 
     if (evt.target.classList.contains('draggable')){
     console.log("Inside SVGDrag"); 
-    console.log("SVGDrag : " + transform); 
+    //console.log("SVGDrag : " + transform); 
 
         if (currentElementSelection !== undefined){
 
             evt.preventDefault();
             var coord = getMousePosition(evt);
-            transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
+            gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
         }
     }
 
@@ -285,13 +283,13 @@ function SVGEndDrag(evt){
 
     evt.preventDefault();
     var coord = getMousePosition(evt);
-    transform.setTranslate(coord.x - offset.x, coord.y - offset.y);
-    console.log("Inside SVGEndDrag"); 
-    currentElementSelection = undefined;
+    gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+    console.log("Inside SVGEndDrag");     
     offset = undefined;
     selectedElement= undefined; 
-    transform= undefined;
+    gtfm= undefined;
     Renderer.itemDeselect();
+    currentElementSelection = undefined;
 
 }
 
@@ -371,6 +369,7 @@ class GridLayout {
         
     }
 }
+
 
 
 

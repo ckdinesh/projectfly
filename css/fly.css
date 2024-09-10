@@ -4,8 +4,11 @@
   .draggable {
     cursor: move;
   }
-  .draggable-selectable {
-    cursor: move;    
+  .draggable-selected {
+    cursor: move;   
+    stroke: yellow;
+    stroke-width : 5;
+    stroke-opacity : 0.4;
   }
 
   .zindex0 {
