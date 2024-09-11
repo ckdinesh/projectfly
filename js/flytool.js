@@ -223,7 +223,6 @@ function create(){
     const e = document.getElementById(currentElementSelection);
     var svg = document.getElementById("mainlayout"); 
     if (e !== null){
-        console.log(e);
         console.log("create() : currentElementSelection :" +currentElementSelection);
         const cnode = e.cloneNode(true);
         SA(cnode, "class" , "draggable-selected draggable");
