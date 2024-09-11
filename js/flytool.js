@@ -1,9 +1,9 @@
 //tool palette shapes declare
 const json_palette =    `{  
-                            "item1" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 70 ,"rx":"30","ry":30, "s" : 0 , "f": "rgb(84,141,68)" , "sw" : 0 , "name": "START" },
-                            "item2" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 140 , "s" : 0 , "f": "rgb(102,119,204)" , "sw" : 0 , "name": "DECISION" },    
-                            "item3" : { "type": "circle" , "cx": 50, "cy": 240, "r": 30 , "s" : 0 , "f": "rgb(183,6,6)" , "sw" : 0 , "name" : "END"} ,
-                            "item4" : { "type": "line" , "x1": 20, "y1": 40 , "x2": 80 , "y2": 40, "style":"stroke:yellow;stroke-width:2" , "name": "CONNECTOR" } 
+                            "item1" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 70 ,"rx":"30","ry":30, "s" : 0 , "f": "rgb(84,141,68)" , "sw" : 0 , "name": "Start" },
+                            "item2" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 140 , "s" : 0 , "f": "rgb(102,119,204)" , "sw" : 0 , "name": "Step" },    
+                            "item3" : { "type": "circle" , "cx": 50, "cy": 240, "r": 30 , "s" : 0 , "f": "rgb(183,6,6)" , "sw" : 0 , "name" : "End"} ,
+                            "item4" : { "type": "line" , "x1": 20, "y1": 40 , "x2": 80 , "y2": 40, "style":"stroke:yellow;stroke-width:2" , "name": "" } 
                         }`;
 const angle =   {
                     CW0 : 0,
@@ -33,6 +33,7 @@ function init(){
     svg.addEventListener('mousedown', SVGStartDrag);
     svg.addEventListener('mousemove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
+    svg.addEventListener('dblclick', addtext);  
     // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
 
 
@@ -125,10 +126,67 @@ function textadd(val,x, y, shade){
     txt.setAttribute("x", x);
     txt.setAttribute("y", y);
     txt.setAttribute("fill", shade);
-    txt.setAttribute("font-size", 10);
+    txt.setAttribute("font-size", 20);
+    txt.setAttribute("alignment-baseline", "middle" );
+    txt.setAttribute("transform", "translate(5,5)" );
+    txt.setAttribute("class", "draggable palette zi0" );
     //txt.setAttribute("style","dominant-baseline:central; text-anchor:middle;");
     txt.textContent = val;
     return txt;
+  }
+
+//Inside setDraggable
+function addtext(evt){
+
+    var e = evt.target;
+    var p = document.getElementById("mainlayout");
+    let w,h,x,y,cx,cy = undefined;
+
+    if (e instanceof SVGRectElement || e instanceof SVGCircleElement){
+      console.log(" Inside dblclick" + e);
+    
+      if (e instanceof SVGRectElement ) {
+        w = parseFloat(evt.target.getAttribute("width"));
+        h = parseFloat(evt.target.getAttribute("height"));
+        x = parseFloat(evt.target.getAttribute("x"));
+        y = parseFloat(evt.target.getAttribute("y"));
+      } else if (e instanceof SVGCircleElement ) {
+        cx = parseFloat(evt.target.getAttribute("cx"));
+        cy = parseFloat(evt.target.getAttribute("cy"));
+      }
+
+      const frgn = document.createElementNS('http://www.w3.org/2000/svg','foreignObject');      
+      frgn.setAttribute("x", x);
+      frgn.setAttribute("y", y);
+      frgn.setAttribute("width", w);
+      frgn.setAttribute("height", h);
+      //frgn.setAttribute("transform", "translate(5,5)" );
+      p.append(frgn);
+      
+      const ta = document.createElement("textarea");  
+      ta.setAttribute("style", "color: white ;"); 
+      //ta.setAttribute("transform", "translate(2,2)" );
+      ta.addEventListener("focusout", (event) => {    
+        
+            const ta_value = ta.value;
+            frgn.remove();
+            const grp = document.createElementNS('http://www.w3.org/2000/svg','g');  
+            //grp.setAttribute("transform", "translate(2,2)" );    
+            grp.append(e);
+            const t = textadd(ta_value, x +10 , y +50  , "purple");
+            grp.append(t);
+            p.append(grp);
+
+
+
+      });
+      // ta.setAttribute("cols", 2);    
+      frgn.append(ta);
+
+      console.log(frgn);
+
+    }
+
   }
 
 ///Create SVG element properties for a shape defined in input item object
@@ -169,9 +227,18 @@ class Renderer {
         SA(e,"onclick", "Renderer.itemSelected(event)")  ;
         SA(e,"id", `${this.item_name}-${random()}`);
         SA(e,"class","draggable palette");
-        const grp = innerDisplay(e, this.data.name , this.data.x + 5, this.data.y + 15 );
-        // console.log(grp);
-        return grp;
+        if (d.hasOwnProperty("x")){
+            const grp = innerDisplay(e, this.data.name , this.data.x + 5, this.data.y + 15 );
+            return grp;
+        } else if (d.hasOwnProperty("cx")) {
+            const grp = innerDisplay(e, this.data.name , this.data.cx - 20, this.data.cy  );
+            return grp;
+        }  else if (d.hasOwnProperty("x1")) {
+            const grp = innerDisplay(e, this.data.name , this.data.x1 , this.data.y2  );
+            return grp;
+        }  
+        console.log(grp);
+        
     }
 
     static itemSelected(evt){
@@ -295,12 +362,13 @@ function SVGStartDrag(evt){
 
 function SVGDrag(evt){
 
-    if (evt.target.classList.contains('draggable')){
+    if (evt.target.classList.contains('draggable') && offset !== undefined){
     console.log("Inside SVGDrag"); 
     //console.log("SVGDrag : " + transform); 
     const coord = getMousePosition(evt);
     console.log("2.coord.x : " + coord.x + ",coord.y : " + coord.y);
     console.log("2.offset.x : " + offset.x + ",offset.y : " + offset.y);
+    console.log("2.gtfm.matrix.e : " + gtfm.matrix.e + ", 2.gtfm.matrix.f : " + gtfm.matrix.f);
         if (currentElementSelection !== undefined){
             evt.preventDefault();            
             gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
@@ -311,17 +379,24 @@ function SVGDrag(evt){
 
 function SVGEndDrag(evt){
 
-    evt.preventDefault();
-    const coord = getMousePosition(evt);
-    console.log("3.coord.x : " + coord.x + ",coord.y : " + coord.y);
-    console.log("3.offset.x : " + offset.x + ",offset.y : " + offset.y);
-    gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
-    console.log("Inside SVGEndDrag");     
-    offset = undefined;
-    selectedElement= undefined; 
-    gtfm= undefined;
+    if (offset !== undefined) {
+        evt.preventDefault();
+        const coord = getMousePosition(evt);
+        console.log("3.coord.x : " + coord.x + ",coord.y : " + coord.y);
+        console.log("3.offset.x : " + offset.x + ",offset.y : " + offset.y);
+        console.log("3.gtfm.matrix.e : " + gtfm.matrix.e + ", 3.gtfm.matrix.f : " + gtfm.matrix.f);
+        gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+        console.log("Inside SVGEndDrag");     
+        offset = undefined;
+        selectedElement= undefined; 
+        gtfm= undefined;
+        currentElementSelection = undefined;
+        console.log(evt.target.transform.baseVal);
+
+    }
+
     Renderer.itemDeselect(false);
-    currentElementSelection = undefined;
+
 
 }
 
