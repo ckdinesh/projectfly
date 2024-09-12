@@ -85,7 +85,8 @@ function init(){
                 svg.append(grp_el.draw());  
             }
                         
-    };             
+    };     
+    
     console.log("Initializing complete...");   
     
 }
@@ -416,23 +417,41 @@ function SVGEndDrag(evt){
         // currentElementSelection = undefined;
         // console.log(evt.target.transform.baseVal);
 
-        x_items.set(id) = coord.x;
-        y_items.set(id) = coord.y;
+        x_items.set(id , coord.x);
+        y_items.set(id , coord.y);
 
     }
-
     Renderer.itemDeselect(false);
-
-
+    point_trace();
 }
 
 
 function point_trace(){
     
-    x_items.forEach()
+    x_items.forEach( function(value,key) {
+        console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
+    });
+    y_items.forEach( function(value,key) {
+        console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
+    });
 }
 
 
+function find_closet(id){
+
+    x = x_items.get(id);
+    let dx = undefined;
+    let closet_id = undefined;
+    x_items.forEach( function(value,key) {        
+        if(id !== key) {
+           if (dx === undefined){
+                dx = value;
+           } else {
+                dx = Math.ceil( x - value) < dx ? value : dx;
+           }
+    });
+
+}
 
 
 //Step 2
