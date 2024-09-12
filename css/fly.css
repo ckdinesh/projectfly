@@ -2,13 +2,20 @@
     cursor: not-allowed;
   }
   .draggable {
-    cursor: move;
+    cursor: pointer;
   }
   .draggable-selected {
-    cursor: move;   
+    cursor: pointer;   
     stroke: yellow;
     stroke-width : 5;
     stroke-opacity : 0.4;
+  }
+
+  .linkable {
+    cursor: move;   
+    stroke: purple;
+    stroke-width : 2;
+    stroke-opacity : 0.9;
   }
 
   .palette {

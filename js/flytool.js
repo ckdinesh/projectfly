@@ -16,9 +16,14 @@ const angle =   {
 var palette_items = JSON.parse(json_palette);
 
 
+var x_items = new Map();
+var y_items = new Map();
+
+
 var currentElementSelection = undefined;
 //const selectionStyle = {"stroke":"yellow","stroke-width":"5","stroke-opacity":"0.4"};
 var selectedElement, offset, gtfm = undefined;
+var linkableElement = undefined;
 
 const PALETTE_SIZE = {"WIDTH": 100 , "HEIGHT" : 600};
 
@@ -33,8 +38,15 @@ function init(){
     svg.addEventListener('mousedown', SVGStartDrag);
     svg.addEventListener('mousemove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
-    svg.addEventListener('dblclick', addtext);  
+    svg.addEventListener('dblclick', addtext); 
+    svg.addEventListener('focus', focusCheck);  
+
     // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
+
+
+    function focusCheck(evt){
+        console.log("Current focus : " + evt.target);
+    }
 
 
     console.log("Initializing started..."); 
@@ -246,15 +258,23 @@ class Renderer {
         const el = evt.target; 
         const eid = GA(el,"id") ;
         console.log("Inside itemSelected : " + currentElementSelection);
-        if (currentElementSelection == null || currentElementSelection != eid){
+        // if (currentElementSelection == null || currentElementSelection != eid){
             if (el.classList.contains('palette')){
                 SA(el,"class", "draggable-selected draggable palette"); 
             } else {
-                SA(el,"class", "draggable-selected draggable"); 
+
+                //console.log()
+                if (el.classList.contains('draggable-selected') ){
+                    SA(el,"class", "linkable draggable");
+                    linkableElement = el;
+                    console.log("linkableElement : " + linkableElement);
+                } else {
+                    SA(el,"class", "draggable-selected draggable");
+                }   
             }
             
             currentElementSelection = eid ; 
-        } 
+        // } 
         Renderer.itemDeselect(false);
     }
 
@@ -294,6 +314,7 @@ function create(){
         const cnode = e.cloneNode(true);
         SA(cnode, "class" , "draggable-selected draggable");
         SA(cnode,"id", random());
+        SA(cnode,"tabindex", "0");
         console.log(cnode);
         svg.append(cnode);
         currentElementSelection = GA(cnode,"id");
@@ -317,26 +338,23 @@ function SVGStartDrag(evt){
 
     //Create a new item when a palette item is selected for drag else drag item along the main layout.
     if (e.classList.contains('palette')){
-        selectedElement = create(); 
-        
+        selectedElement = create();         
     } else {
         selectedElement  = e ;
     }
                         
 
     //Only on Item clicks
-    if (e.classList.contains('draggable')){
+    if (e.classList.contains('draggable-selected')){
             console.log("Inside If of SVGStartDrag ");  
             console.log(evt.target);
             console.log("e.classList.contains('palette')" + e.classList.contains('palette'))
             
-            const loc = getMousePosition(evt);
-            // console.log("Point : " + loc.x + "," + loc.y);
             const svg = document.getElementById("mainlayout");              
 
             offset = getMousePosition(evt);
-            console.log("1.loc.x : " + loc.x + ",loc.y : " + loc.y);
-            console.log("1.offset.x : " + offset.x + ",offset.y : " + offset.y);
+            // console.log("1.loc.x : " + loc.x + ",loc.y : " + loc.y);
+            // console.log("1.offset.x : " + offset.x + ",offset.y : " + offset.y);
 
             let tfm = selectedElement.transform.baseVal;
             // console.log("Inside SVGStartDrag length : " + tfm.length + ", offsetx:" + offset.x +", offsety:" + offset.y);
@@ -351,9 +369,9 @@ function SVGStartDrag(evt){
             }
 
             gtfm = tfm.getItem(0);
-            console.log("gtfm.matrix.e : " + gtfm.matrix.e + ", gtfm.matrix.f : " + gtfm.matrix.f);
-            offset.x -= gtfm.matrix.e;
-            offset.y -= gtfm.matrix.f;
+            // console.log("gtfm.matrix.e : " + gtfm.matrix.e + ", gtfm.matrix.f : " + gtfm.matrix.f);
+            //offset.x -= gtfm.matrix.e;
+            //offset.y -= gtfm.matrix.f;
             console.log("SVGStartDrag :" + gtfm);
 
     }
@@ -362,13 +380,13 @@ function SVGStartDrag(evt){
 
 function SVGDrag(evt){
 
-    if (evt.target.classList.contains('draggable') && offset !== undefined){
+    if (evt.target.classList.contains('draggable-selected') && offset !== undefined){
     console.log("Inside SVGDrag"); 
     //console.log("SVGDrag : " + transform); 
     const coord = getMousePosition(evt);
-    console.log("2.coord.x : " + coord.x + ",coord.y : " + coord.y);
-    console.log("2.offset.x : " + offset.x + ",offset.y : " + offset.y);
-    console.log("2.gtfm.matrix.e : " + gtfm.matrix.e + ", 2.gtfm.matrix.f : " + gtfm.matrix.f);
+    // console.log("2.coord.x : " + coord.x + ",coord.y : " + coord.y);
+    // console.log("2.offset.x : " + offset.x + ",offset.y : " + offset.y);
+    // console.log("2.gtfm.matrix.e : " + gtfm.matrix.e + ", 2.gtfm.matrix.f : " + gtfm.matrix.f);
         if (currentElementSelection !== undefined){
             evt.preventDefault();            
             gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
@@ -380,24 +398,38 @@ function SVGDrag(evt){
 function SVGEndDrag(evt){
 
     if (offset !== undefined) {
+
+        let e = evt.target;
+        let id = GA(e,"id");
+
         evt.preventDefault();
+
         const coord = getMousePosition(evt);
-        console.log("3.coord.x : " + coord.x + ",coord.y : " + coord.y);
-        console.log("3.offset.x : " + offset.x + ",offset.y : " + offset.y);
-        console.log("3.gtfm.matrix.e : " + gtfm.matrix.e + ", 3.gtfm.matrix.f : " + gtfm.matrix.f);
+        // console.log("3.coord.x : " + coord.x + ",coord.y : " + coord.y);
+        // console.log("3.offset.x : " + offset.x + ",offset.y : " + offset.y);
+        // console.log("3.gtfm.matrix.e : " + gtfm.matrix.e + ", 3.gtfm.matrix.f : " + gtfm.matrix.f);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
         console.log("Inside SVGEndDrag");     
         offset = undefined;
         selectedElement= undefined; 
         gtfm= undefined;
-        currentElementSelection = undefined;
-        console.log(evt.target.transform.baseVal);
+        // currentElementSelection = undefined;
+        // console.log(evt.target.transform.baseVal);
+
+        x_items.set(id) = coord.x;
+        y_items.set(id) = coord.y;
 
     }
 
     Renderer.itemDeselect(false);
 
 
+}
+
+
+function point_trace(){
+    
+    x_items.forEach()
 }
 
 
