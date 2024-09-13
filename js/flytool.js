@@ -2,9 +2,11 @@
 const json_palette =    `{  
                             "item1" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 70 ,"rx":"30","ry":30, "s" : 0 , "f": "rgb(84,141,68)" , "sw" : 0 , "name": "Start" },
                             "item2" : { "type": "rect" , "width": 60, "height": 40, "x": 20, "y": 140 , "s" : 0 , "f": "rgb(102,119,204)" , "sw" : 0 , "name": "Step" },    
-                            "item3" : { "type": "circle" , "cx": 50, "cy": 240, "r": 30 , "s" : 0 , "f": "rgb(183,6,6)" , "sw" : 0 , "name" : "End"} ,
-                            "item4" : { "type": "line" , "x1": 20, "y1": 40 , "x2": 80 , "y2": 40, "style":"stroke:yellow;stroke-width:2" , "name": "" } 
+                            "item3" : { "type": "circle" , "cx": 50, "cy": 240, "r": 30 , "s" : 0 , "f": "rgb(183,6,6)" , "sw" : 0 , "name" : "End"}                             
                         }`;
+
+                        
+                        // "item4" : { "type": "line" , "x1": 20, "y1": 40 , "x2": 80 , "y2": 40, "style":"stroke:yellow;stroke-width:2" , "name": "" } 
 const angle =   {
                     CW0 : 0,
                     CW360 : 2 * Math.PI,
@@ -15,6 +17,7 @@ const angle =   {
 
 var palette_items = JSON.parse(json_palette);
 
+var shape_pressed = 0;
 
 var x_items = new Map();
 var y_items = new Map();
@@ -39,14 +42,14 @@ function init(){
     svg.addEventListener('mousemove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
     svg.addEventListener('dblclick', addtext); 
-    svg.addEventListener('focus', focusCheck);  
+    // svg.addEventListener('focus', focusCheck);  
 
     // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
 
 
-    function focusCheck(evt){
-        console.log("Current focus : " + evt.target);
-    }
+    // function focusCheck(evt){
+    //     console.log("Current focus : " + evt.target);
+    // }
 
 
     console.log("Initializing started..."); 
@@ -263,8 +266,6 @@ class Renderer {
             if (el.classList.contains('palette')){
                 SA(el,"class", "draggable-selected draggable palette"); 
             } else {
-
-                //console.log()
                 if (el.classList.contains('draggable-selected') ){
                     SA(el,"class", "linkable draggable");
                     linkableElement = el;
@@ -276,7 +277,7 @@ class Renderer {
             
             currentElementSelection = eid ; 
         // } 
-        Renderer.itemDeselect(false);
+        //Renderer.itemDeselect(false);
     }
 
     static itemDeselect(a){
@@ -315,10 +316,12 @@ function create(){
         const cnode = e.cloneNode(true);
         SA(cnode, "class" , "draggable-selected draggable");
         SA(cnode,"id", random());
-        SA(cnode,"tabindex", "0");
+        // SA(cnode,"tabindex", "0");
         console.log(cnode);
         svg.append(cnode);
         currentElementSelection = GA(cnode,"id");
+        shape_pressed++;
+        console.log("shape_created : " + shape_pressed);
         return cnode;
     }
     
@@ -339,41 +342,32 @@ function SVGStartDrag(evt){
 
     //Create a new item when a palette item is selected for drag else drag item along the main layout.
     if (e.classList.contains('palette')){
-        selectedElement = create();         
+        selectedElement = create(); 
     } else {
         selectedElement  = e ;
     }
-                        
+    
+    
 
     //Only on Item clicks
     if (e.classList.contains('draggable-selected')){
             console.log("Inside If of SVGStartDrag ");  
             console.log(evt.target);
-            console.log("e.classList.contains('palette')" + e.classList.contains('palette'))
+            console.log("e.classList.contains('palette') : " + e.classList.contains('palette'))
             
             const svg = document.getElementById("mainlayout");              
 
             offset = getMousePosition(evt);
-            // console.log("1.loc.x : " + loc.x + ",loc.y : " + loc.y);
-            // console.log("1.offset.x : " + offset.x + ",offset.y : " + offset.y);
 
-            let tfm = selectedElement.transform.baseVal;
-            // console.log("Inside SVGStartDrag length : " + tfm.length + ", offsetx:" + offset.x +", offsety:" + offset.y);
+            let transforms = selectedElement.transform.baseVal;
 
-            if (tfm.length === 0 || tfm.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
+            if (transforms.length === 0 || transforms.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
 
                 var translate = svg.createSVGTransform();
                 translate.setTranslate(0, 0);
-                // Add the translation to the front of the transforms list
-                //selectedElement.transform.baseVal.insertItemBefore(translate, 0);
-                tfm.insertItemBefore(translate, 0);
+                transforms.insertItemBefore(translate, 0);
             }
-
-            gtfm = tfm.getItem(0);
-            // console.log("gtfm.matrix.e : " + gtfm.matrix.e + ", gtfm.matrix.f : " + gtfm.matrix.f);
-            //offset.x -= gtfm.matrix.e;
-            //offset.y -= gtfm.matrix.f;
-            console.log("SVGStartDrag :" + gtfm);
+            gtfm = transforms.getItem(0);
 
     }
 
@@ -381,16 +375,17 @@ function SVGStartDrag(evt){
 
 function SVGDrag(evt){
 
-    if (evt.target.classList.contains('draggable-selected') && offset !== undefined){
-    console.log("Inside SVGDrag"); 
-    //console.log("SVGDrag : " + transform); 
-    const coord = getMousePosition(evt);
-    // console.log("2.coord.x : " + coord.x + ",coord.y : " + coord.y);
-    // console.log("2.offset.x : " + offset.x + ",offset.y : " + offset.y);
-    // console.log("2.gtfm.matrix.e : " + gtfm.matrix.e + ", 2.gtfm.matrix.f : " + gtfm.matrix.f);
+    let e = evt.target;
+    const id = GA(e,"id");
+    console.log("Inside SVGDrag : id :" + id);
+
+    if (e.classList.contains('draggable-selected') && offset !== undefined){
+
+        const coord = getMousePosition(evt);
+
         if (currentElementSelection !== undefined){
-            evt.preventDefault();            
-            gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+                evt.preventDefault();            
+                gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
         }
     }
 
@@ -398,31 +393,38 @@ function SVGDrag(evt){
 
 function SVGEndDrag(evt){
 
-    if (offset !== undefined) {
+    let e = evt.target;
+    let id = GA(e,"id");
+    console.log("Inside SVGEndDrag Id: " + id); 
 
-        let e = evt.target;
-        let id = GA(e,"id");
+    // const coord1 = getMousePosition(evt);
+
+    // if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
+    //     x_items.set(id , coord1.x);
+    //     y_items.set(id , coord1.y);
+    // }
+
+    // let rect = e.getBoundingClientRect();
+    // for (const key in rect) {
+    //     console.log(`${key} : ${rect[key]}`);
+    // }
+    
+    
+
+    if (offset !== undefined) {
 
         evt.preventDefault();
 
         const coord = getMousePosition(evt);
-        // console.log("3.coord.x : " + coord.x + ",coord.y : " + coord.y);
-        // console.log("3.offset.x : " + offset.x + ",offset.y : " + offset.y);
-        // console.log("3.gtfm.matrix.e : " + gtfm.matrix.e + ", 3.gtfm.matrix.f : " + gtfm.matrix.f);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
-        console.log("Inside SVGEndDrag");     
         offset = undefined;
         selectedElement= undefined; 
         gtfm= undefined;
-        // currentElementSelection = undefined;
-        // console.log(evt.target.transform.baseVal);
-
-        x_items.set(id , coord.x);
-        y_items.set(id , coord.y);
 
     }
-    Renderer.itemDeselect(false);
-    point_trace();
+    //Renderer.itemDeselect(false);
+    // point_trace();
+    // find_closet(id);
 }
 
 
@@ -434,22 +436,31 @@ function point_trace(){
     y_items.forEach( function(value,key) {
         console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
     });
+
+    
 }
 
 
 function find_closet(id){
 
     x = x_items.get(id);
+
+
     let dx = undefined;
     let closet_id = undefined;
+
     x_items.forEach( function(value,key) {        
         if(id !== key) {
            if (dx === undefined){
-                dx = value;
+                dx =  Math.abs(x - value);
+                closet_id = key;
            } else {
-                dx = Math.ceil( x - value) < dx ? value : dx;
-           }
+                dx = Math.abs( x - value) < dx ? value : dx;
+                closet_id = ( dx === Math.abs(x - value)) ? key : closet_id;
+           }    
+        }
     });
+    console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
 
 }
 
