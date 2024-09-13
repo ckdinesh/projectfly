@@ -261,13 +261,13 @@ class Renderer {
         
         const el = evt.target; 
         const eid = GA(el,"id") ;
-        console.log("Inside itemSelected : " + currentElementSelection);
+        console.log("Inside itemSelected Before: " + currentElementSelection);
         // if (currentElementSelection == null || currentElementSelection != eid){
             if (el.classList.contains('palette')){
                 SA(el,"class", "draggable-selected draggable palette"); 
             } else {
                 if (el.classList.contains('draggable-selected') ){
-                    SA(el,"class", "linkable draggable");
+                    SA(el,"class", "draggable-selected linkable draggable");
                     linkableElement = el;
                     console.log("linkableElement : " + linkableElement);
                 } else {
@@ -276,11 +276,14 @@ class Renderer {
             }
             
             currentElementSelection = eid ; 
+            console.log("Inside itemSelected After: " + currentElementSelection);
         // } 
-        //Renderer.itemDeselect(false);
+        // Renderer.itemDeselect(false);
     }
 
     static itemDeselect(a){
+
+        console.log("Inside itemDeselect Before: " + currentElementSelection);
 
         //Click on svg layout
         if (a == true){
@@ -301,6 +304,8 @@ class Renderer {
                 
             }           
         }
+
+        console.log("Inside itemDeselect After: " + currentElementSelection);
         
     }
 }
@@ -311,8 +316,9 @@ function create(){
 
     const e = document.getElementById(currentElementSelection);
     var svg = document.getElementById("mainlayout"); 
+    console.log("Inside create() ");
     if (e !== null){
-        console.log("create() : currentElementSelection :" +currentElementSelection);
+        
         const cnode = e.cloneNode(true);
         SA(cnode, "class" , "draggable-selected draggable");
         SA(cnode,"id", random());
@@ -320,6 +326,7 @@ function create(){
         console.log(cnode);
         svg.append(cnode);
         currentElementSelection = GA(cnode,"id");
+        console.log("create() : currentElementSelection :" +currentElementSelection);
         shape_pressed++;
         console.log("shape_created : " + shape_pressed);
         return cnode;
@@ -334,14 +341,16 @@ function SVGStartDrag(evt){
     const id = GA(e,"id");
 
     console.log("Inside SVGStartDrag : id :" + id);
+    currentElementSelection = GA(e,"id");
 
     //Only for svg layout clicks
     if( id === "mainlayout") {
         Renderer.itemDeselect(true);
-    }
+    } 
 
     //Create a new item when a palette item is selected for drag else drag item along the main layout.
     if (e.classList.contains('palette')){
+        console.log("Inside SVGStartDrag : Calling create()")
         selectedElement = create(); 
     } else {
         selectedElement  = e ;
@@ -397,17 +406,19 @@ function SVGEndDrag(evt){
     let id = GA(e,"id");
     console.log("Inside SVGEndDrag Id: " + id); 
 
-    // const coord1 = getMousePosition(evt);
+    const coord1 = getMousePosition(evt);
 
-    // if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
-    //     x_items.set(id , coord1.x);
-    //     y_items.set(id , coord1.y);
-    // }
+    if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
+        x_items.set(id , coord1.x);
+        y_items.set(id , coord1.y);
+        point_trace();
+        find_closet(id);
+    }
 
-    // let rect = e.getBoundingClientRect();
-    // for (const key in rect) {
-    //     console.log(`${key} : ${rect[key]}`);
-    // }
+    let rect = e.getBoundingClientRect();
+    for (const key in rect) {
+        console.log(`${key} : ${rect[key]}`);
+    }
     
     
 
@@ -422,9 +433,10 @@ function SVGEndDrag(evt){
         gtfm= undefined;
 
     }
-    //Renderer.itemDeselect(false);
-    // point_trace();
-    // find_closet(id);
+    // Renderer.itemDeselect(false);
+
+
+
 }
 
 
@@ -443,26 +455,36 @@ function point_trace(){
 
 function find_closet(id){
 
-    x = x_items.get(id);
 
+    if(id !== "mainlayout"){
+        x = x_items.get(id);
 
-    let dx = undefined;
-    let closet_id = undefined;
+        console.log("Inside find_closet : x : " + x);
+        let dx = undefined;
+        let closet_id = undefined;
 
-    x_items.forEach( function(value,key) {        
-        if(id !== key) {
-           if (dx === undefined){
-                dx =  Math.abs(x - value);
-                closet_id = key;
-           } else {
-                dx = Math.abs( x - value) < dx ? value : dx;
-                closet_id = ( dx === Math.abs(x - value)) ? key : closet_id;
-           }    
-        }
-    });
-    console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
+        x_items.forEach( function(value,key) {        
+            if(id !== key) {
+                if (dx === undefined){
+                        dx =  Math.abs(x - value);
+                        closet_id = key;
+                } else {
+                        dx = Math.abs( x - value) < dx ?  Math.abs( x - value)  : dx;
+                        closet_id = ( dx === Math.abs(x - value)) ? key : closet_id;
+                }    
+                console.log("Inside find_closet : key : " + key + ", value : " + value);
+                console.log("Inside find_closet : dx : " + dx); 
+                console.log("Inside find_closet : closet_id : " + closet_id);
+            }
+        });
+        console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
+
+    }
+
+    
 
 }
+
 
 
 //Step 2
