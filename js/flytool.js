@@ -16,11 +16,16 @@ const angle =   {
                 };
 
 var palette_items = JSON.parse(json_palette);
-
 var shape_pressed = 0;
+var onmove = undefined;
 
+var curr_item_postn = new Map();
 var x_items = new Map();
 var y_items = new Map();
+
+var last_postn = null;
+
+
 
 
 var currentElementSelection = undefined;
@@ -42,15 +47,6 @@ function init(){
     svg.addEventListener('mousemove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
     svg.addEventListener('dblclick', addtext); 
-    // svg.addEventListener('focus', focusCheck);  
-
-    // svg.addEventListener('mouseleave', Renderer.SVGendDrag);
-
-
-    // function focusCheck(evt){
-    //     console.log("Current focus : " + evt.target);
-    // }
-
 
     console.log("Initializing started..."); 
     
@@ -264,7 +260,7 @@ class Renderer {
         console.log("Inside itemSelected Before: " + currentElementSelection);
         // if (currentElementSelection == null || currentElementSelection != eid){
             if (el.classList.contains('palette')){
-                SA(el,"class", "draggable-selected draggable palette"); 
+                SA(el,"class", "draggable-selected draggable palette zi0"); 
             } else {
                 if (el.classList.contains('draggable-selected') ){
                     SA(el,"class", "draggable-selected linkable draggable");
@@ -278,7 +274,7 @@ class Renderer {
             currentElementSelection = eid ; 
             console.log("Inside itemSelected After: " + currentElementSelection);
         // } 
-        // Renderer.itemDeselect(false);
+        //Renderer.itemDeselect(false);
     }
 
     static itemDeselect(a){
@@ -340,45 +336,50 @@ function SVGStartDrag(evt){
     let e = evt.target;
     const id = GA(e,"id");
 
-    console.log("Inside SVGStartDrag : id :" + id);
-    currentElementSelection = GA(e,"id");
-
+    
     //Only for svg layout clicks
     if( id === "mainlayout") {
         Renderer.itemDeselect(true);
     } 
 
-    //Create a new item when a palette item is selected for drag else drag item along the main layout.
-    if (e.classList.contains('palette')){
-        console.log("Inside SVGStartDrag : Calling create()")
-        selectedElement = create(); 
-    } else {
-        selectedElement  = e ;
+    if(id !== "mainlayout" &&  id !== null) {
+
+        console.log("Inside SVGStartDrag : id :" + id);
+        currentElementSelection = GA(e,"id");
+
+        //Create a new item when a palette item is selected for drag else drag item along the main layout.
+        if (e.classList.contains('palette')){
+            console.log("Inside SVGStartDrag : Calling create()")
+            selectedElement = create(); 
+        } else {
+            selectedElement  = e ;
+        }
+        
+        onmove = GA(selectedElement , "id");
+
+        //Only on Item clicks
+        if (e.classList.contains('draggable-selected')){
+                console.log("Inside If of SVGStartDrag ");  
+                console.log(evt.target);
+                console.log("e.classList.contains('palette') : " + e.classList.contains('palette'))
+                
+                const svg = document.getElementById("mainlayout");              
+
+                offset = getMousePosition(evt);
+
+                let transforms = selectedElement.transform.baseVal;
+
+                if (transforms.length === 0 || transforms.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
+
+                    var translate = svg.createSVGTransform();
+                    translate.setTranslate(0, 0);
+                    transforms.insertItemBefore(translate, 0);
+                }
+                gtfm = transforms.getItem(0);
+
+        }
     }
     
-    
-
-    //Only on Item clicks
-    if (e.classList.contains('draggable-selected')){
-            console.log("Inside If of SVGStartDrag ");  
-            console.log(evt.target);
-            console.log("e.classList.contains('palette') : " + e.classList.contains('palette'))
-            
-            const svg = document.getElementById("mainlayout");              
-
-            offset = getMousePosition(evt);
-
-            let transforms = selectedElement.transform.baseVal;
-
-            if (transforms.length === 0 || transforms.getItem(0).type  === SVGTransform.SVG_TRANSFORM_TRANSLATE){
-
-                var translate = svg.createSVGTransform();
-                translate.setTranslate(0, 0);
-                transforms.insertItemBefore(translate, 0);
-            }
-            gtfm = transforms.getItem(0);
-
-    }
 
 }
 
@@ -386,17 +387,22 @@ function SVGDrag(evt){
 
     let e = evt.target;
     const id = GA(e,"id");
+    if(id !== "mainlayout" &&  id !== null) {
+
     console.log("Inside SVGDrag : id :" + id);
+    
+        if (e.classList.contains('draggable-selected') && offset !== undefined){
 
-    if (e.classList.contains('draggable-selected') && offset !== undefined){
-
-        const coord = getMousePosition(evt);
-
-        if (currentElementSelection !== undefined){
-                evt.preventDefault();            
-                gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+            const coord = getMousePosition(evt);
+    
+            if (currentElementSelection !== undefined){
+                    evt.preventDefault();            
+                    gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+            }
         }
+
     }
+
 
 }
 
@@ -404,22 +410,19 @@ function SVGEndDrag(evt){
 
     let e = evt.target;
     let id = GA(e,"id");
-    console.log("Inside SVGEndDrag Id: " + id); 
+
+    // if(id !== "mainlayout" &&  id !== null) {
+    console.log("Inside SVGEndDrag Id: " + id + " , onmove : " + onmove); 
+    
 
     const coord1 = getMousePosition(evt);
 
-    if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
-        x_items.set(id , coord1.x);
-        y_items.set(id , coord1.y);
-        point_trace();
-        find_closet(id);
-    }
-
-    let rect = e.getBoundingClientRect();
-    for (const key in rect) {
-        console.log(`${key} : ${rect[key]}`);
-    }
-    
+    // if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
+        // x_items.set(id , coord1.x);
+        // y_items.set(id , coord1.y);
+        // point_trace();
+        // find_closet(id);
+    // } 
     
 
     if (offset !== undefined) {
@@ -428,14 +431,46 @@ function SVGEndDrag(evt){
 
         const coord = getMousePosition(evt);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+
+        let curr = {};
+        let rect = document.getElementById(onmove).getBoundingClientRect();
+        for (const key in rect) {
+            console.log(`${key} : ${rect[key]}`);
+        }
+        curr_item_postn[id] = rect;
+
         offset = undefined;
         selectedElement= undefined; 
         gtfm= undefined;
 
     }
-    // Renderer.itemDeselect(false);
+    
+    
+    Renderer.itemDeselect(false);
+    console.log("curr_item_postn : " + curr_item_postn);
+
+    for (const key in curr_item_postn) {
+        console.log(`${key} : ${curr_item_postn[key]}`);
+    }
+
+    onmove = undefined;
+
+    // }
+
+}
 
 
+function cursor_proximity(evt){
+
+    const e = evt.target;
+    const postn = e.getMousePosition();
+    
+    let move_direction_chance = null;
+
+    if ( last_postn !== null ){
+        //Toward horizontal when true; else vertical.
+        move_direction_chance = Math.abs(postn.x - last_postn.x) > Math.abs(postn.y - last_postn.y) ? true : false; 
+    }
 
 }
 

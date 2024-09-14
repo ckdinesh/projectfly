@@ -2,10 +2,10 @@
     cursor: not-allowed;
   }
   .draggable {
-    cursor: pointer;
+    cursor: move;
   }
   .draggable-selected {
-    cursor: pointer;   
+    cursor: move;   
     stroke: yellow;
     stroke-width : 5;
     stroke-opacity : 0.4;
