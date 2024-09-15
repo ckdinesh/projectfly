@@ -45,6 +45,7 @@ function init(){
 
     svg.addEventListener('mousedown', SVGStartDrag);
     svg.addEventListener('mousemove', SVGDrag);
+    // svg.addEventListener('pointermove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
     svg.addEventListener('dblclick', addtext); 
 
@@ -419,7 +420,7 @@ function SVGEndDrag(evt){
     console.log("Inside SVGEndDrag Id: " + id + " , onmove : " + onmove); 
     
 
-    const coord1 = getMousePosition(evt);
+    // const coord1 = getMousePosition(evt);
 
     // if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
         // x_items.set(id , coord1.x);
@@ -502,14 +503,16 @@ function find_closet(id){
         let dx = undefined;
         let closet_id = undefined;
 
-        x_items.forEach( function(value,key) {        
+        x_items.forEach( function(value,key) {   
+            
+            deltaX = Math.abs(x - value);
             if(id !== key) {
                 if (dx === undefined){
-                        dx =  Math.abs(x - value);
+                        dx = deltaX ;
                         closet_id = key;
                 } else {
-                        dx = Math.abs( x - value) < dx ?  Math.abs( x - value)  : dx;
-                        closet_id = ( dx === Math.abs(x - value)) ? key : closet_id;
+                        dx = deltaX < dx ?  deltaX  : dx;
+                        closet_id = ( dx === deltaX) ? key : closet_id;
                 }    
                 console.log("Inside find_closet : key : " + key + ", value : " + value);
                 console.log("Inside find_closet : dx : " + dx); 
