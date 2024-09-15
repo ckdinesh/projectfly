@@ -387,9 +387,11 @@ function SVGDrag(evt){
 
     let e = evt.target;
     const id = GA(e,"id");
-    if(id !== "mainlayout" &&  id !== null) {
+    // if(id !== "mainlayout" &&  id !== null) {
 
     console.log("Inside SVGDrag : id :" + id);
+    // console.log(evt);
+
     
         if (e.classList.contains('draggable-selected') && offset !== undefined){
 
@@ -398,10 +400,12 @@ function SVGDrag(evt){
             if (currentElementSelection !== undefined){
                     evt.preventDefault();            
                     gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+                    
+                    // gtfm.setTranslate(parseFloat(Math.abs(e.movementX)), parseFloat(Math.abs(e.movementY)));
             }
         }
 
-    }
+    // }
 
 
 }
