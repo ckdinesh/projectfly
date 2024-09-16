@@ -317,7 +317,7 @@ function create(){
     if (e !== null){
         
         const cnode = e.cloneNode(true);
-        SA(cnode, "class" , "draggable-selected draggable");
+        SA(cnode, "class" , "draggable-selected draggable itm");
         SA(cnode,"id", random());
         // SA(cnode,"tabindex", "0");
         console.log(cnode);
@@ -437,12 +437,11 @@ function SVGEndDrag(evt){
         const coord = getMousePosition(evt);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
 
-        let curr = {};
-        let rect = document.getElementById(onmove).getBoundingClientRect();
-        for (const key in rect) {
-            console.log(`${key} : ${rect[key]}`);
-        }
-        curr_item_postn[id] = rect;
+        // let rect = document.getElementById(onmove).getBoundingClientRect();
+        // for (const key in rect) {
+        //     console.log(`${key} : ${rect[key]}`);
+        // }
+        // curr_item_postn[id] = rect;
 
         offset = undefined;
         selectedElement= undefined; 
@@ -452,15 +451,16 @@ function SVGEndDrag(evt){
     
     
     Renderer.itemDeselect(false);
-    console.log("curr_item_postn : " + curr_item_postn);
+    // console.log("curr_item_postn : " + curr_item_postn);
 
-    for (const key in curr_item_postn) {
-        console.log(`${key} : ${curr_item_postn[key]}`);
-    }
+    // for (const key in curr_item_postn) {
+    //     console.log(`${key} : ${curr_item_postn[key]}`);
+    // }
 
     onmove = undefined;
 
     // }
+    point_trace();
 
 }
 
@@ -481,7 +481,27 @@ function cursor_proximity(evt){
 
 
 function point_trace(){
+
+    console.log(" Inside point_trace " );
+
+    const collection = document.getElementsByClassName("itm");
     
+    for (let i = 0; i < collection.length; i++) {
+        let rect = document.getElementById(collection[i].id).getBoundingClientRect();
+        let curr_id = collection[i].id;
+        curr_item_postn[curr_id] = rect;
+        x_items.set(curr_id , rect.x);
+        y_items.set(curr_id , rect.y);
+        find_closet(curr_id);
+    }
+
+    console.log("curr_item_postn : " + curr_item_postn);
+
+    for (const key in curr_item_postn) {
+        console.log(`${key} : ${curr_item_postn[key]}`);
+    }
+
+   
     x_items.forEach( function(value,key) {
         console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
     });
@@ -489,6 +509,7 @@ function point_trace(){
         console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
     });
 
+    
     
 }
 
@@ -521,12 +542,48 @@ function find_closet(id){
         });
         console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
 
-    }
+        let  a,b= undefined ;
+        a = item_coord(id);
+        b = item_coord(closet_id);
+    
+        console.log("a[0].x" + a[0].x + "a[0].y"+ a[0].y  );
+        console.log("b[0].x" + b[0].x + "b[0].y"+ b[0].y  );
+
+    } 
+
 
     
 
 }
 
+
+function item_coord(id){
+
+    let rect = curr_item_postn[id];
+
+    const lt_corner = {"x" : rect.x , "y" : rect.y};
+    const rb_corner = {"x" : rect.right , "y" : rect.bottom};
+
+    let tcoord= {};
+    tcoord["x"] = (rb_corner.x - lt_corner.x) / 2;
+    tcoord["y"] = lt_corner.y;
+
+    let rcoord= {};
+    rcoord["x"] = rb_corner.x;
+    rcoord["y"] = (rb_corner.y - lt_corner.y) / 2;
+
+    let bcoord= {};
+    bcoord["x"] = (rb_corner.x - lt_corner.x) / 2;
+    bcoord["y"] = rb_corner.y;
+
+    let lcoord= {};
+    lcoord["x"] = lt_corner.x;
+    lcoord["y"] = (rb_corner.y - lt_corner.y) / 2;
+
+
+    return {tcoord,rcoord,bcoord,lcoord};
+
+}
 
 
 //Step 2
