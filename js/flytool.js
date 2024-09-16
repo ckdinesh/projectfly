@@ -499,6 +499,7 @@ function point_trace(){
 
     for (const key in curr_item_postn) {
         console.log(`${key} : ${curr_item_postn[key]}`);
+        console.log(curr_item_postn[key]);
     }
 
    
@@ -542,13 +543,15 @@ function find_closet(id){
         });
         console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
 
-        let  a,b= undefined ;
+        let  a,b = undefined ;
         a = item_coord(id);
         b = item_coord(closet_id);
     
-        console.log("a[0].x" + a[0].x + "a[0].y"+ a[0].y  );
-        console.log("b[0].x" + b[0].x + "b[0].y"+ b[0].y  );
+        console.log("a.x1 : " + a.x1 + " , a.y1 : "+ a.y1  );
+        console.log("b.x1 : " + b.x1 + " , b.y1 : "+ b.y1  );
 
+        edge_highlight(a);
+        edge_highlight(b);
     } 
 
 
@@ -561,27 +564,54 @@ function item_coord(id){
 
     let rect = curr_item_postn[id];
 
-    const lt_corner = {"x" : rect.x , "y" : rect.y};
-    const rb_corner = {"x" : rect.right , "y" : rect.bottom};
+    //console.log("Inside item_coord  : id : " + id +" , x: " + rect.x + ", y: " +  rect.y + ", right : " + rect.right + ", bottom : " + rect.bottom );
 
     let tcoord= {};
-    tcoord["x"] = (rb_corner.x - lt_corner.x) / 2;
-    tcoord["y"] = lt_corner.y;
+    tcoord["x1"] = rect.x + (rect.width / 2);
+    tcoord["y1"] = rect.y;
+    tcoord["x2"] = rect.right;
+    tcoord["y2"] = rect.y + ( rect.height / 2);
+    tcoord["x3"] = rect.x + (rect.width / 2);
+    tcoord["y3"] = rect.bottom;
+    tcoord["x4"] = rect.x;
+    tcoord["y4"] = rect.y + ( rect.height / 2);
+    return tcoord;
 
-    let rcoord= {};
-    rcoord["x"] = rb_corner.x;
-    rcoord["y"] = (rb_corner.y - lt_corner.y) / 2;
-
-    let bcoord= {};
-    bcoord["x"] = (rb_corner.x - lt_corner.x) / 2;
-    bcoord["y"] = rb_corner.y;
-
-    let lcoord= {};
-    lcoord["x"] = lt_corner.x;
-    lcoord["y"] = (rb_corner.y - lt_corner.y) / 2;
+}
 
 
-    return {tcoord,rcoord,bcoord,lcoord};
+function edge_highlight(coord){
+
+    var svg = document.getElementById("mainlayout"); 
+
+    const e1 = CE("circle");
+    SA(e1, "cx" , coord.x1);
+    SA(e1, "cy" , coord.y1);
+    SA(e1, "r" , 2);
+    SA(e1, "fill" , "white");
+
+    const e2 = CE("circle");
+    SA(e2, "cx" , coord.x2);
+    SA(e2, "cy" , coord.y2);
+    SA(e2, "r" , 2);
+    SA(e2, "fill" , "white");
+
+    const e3 = CE("circle");
+    SA(e3, "cx" , coord.x3);
+    SA(e3, "cy" , coord.y3);
+    SA(e3, "r" , 2);
+    SA(e3, "fill" , "white");
+
+    const e4 = CE("circle");
+    SA(e4, "cx" , coord.x4);
+    SA(e4, "cy" , coord.y4);
+    SA(e4, "r" , 2);
+    SA(e4, "fill" , "white");
+
+    svg.append(e1);
+    svg.append(e2);
+    svg.append(e3);
+    svg.append(e4);
 
 }
 
