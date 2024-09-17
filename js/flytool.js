@@ -267,11 +267,11 @@ class Renderer {
                 SA(el,"class", "draggable-selected draggable palette zi0"); 
             } else {
                 if (el.classList.contains('draggable-selected') ){
-                    SA(el,"class", "draggable-selected linkable draggable");
+                    SA(el,"class", "draggable-selected linkable draggable itm");
                     linkableElement = el;
                     console.log("linkableElement : " + linkableElement);
                 } else {
-                    SA(el,"class", "draggable-selected draggable");
+                    SA(el,"class", "draggable-selected draggable itm");
                 }   
             }
             
@@ -422,44 +422,35 @@ function SVGEndDrag(evt){
     // if(id !== "mainlayout" &&  id !== null) {
     console.log("Inside SVGEndDrag Id: " + id + " , onmove : " + onmove); 
     
-
-    // const coord1 = getMousePosition(evt);
-
-    // if( id !== "mainlayout" && id !== null && !e.classList.contains('palette') ) {
-        // x_items.set(id , coord1.x);
-        // y_items.set(id , coord1.y);
-        // point_trace();
-        // find_closet(id);
-    // } 
-    
-
     if (offset !== undefined) {
+
+        var svg = document.getElementById("mainlayout"); 
 
         evt.preventDefault();
 
         const coord = getMousePosition(evt);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
 
-        // let rect = document.getElementById(onmove).getBoundingClientRect();
-        // for (const key in rect) {
-        //     console.log(`${key} : ${rect[key]}`);
-        // }
-        // curr_item_postn[id] = rect;
+        let rect = document.getElementById(onmove).getBoundingClientRect();
+        for (const key in rect) {
+            console.log(`${key} : ${rect[key]}`);
+        }
+        curr_item_postn[id] = rect;
 
+        
         offset = undefined;
         selectedElement= undefined; 
         gtfm= undefined;
 
-    }
-    
+    }    
     
     Renderer.itemDeselect(false);
-    // console.log("curr_item_postn : " + curr_item_postn);
+
+    console.log("curr_item_postn : " + curr_item_postn);
 
     // for (const key in curr_item_postn) {
     //     console.log(`${key} : ${curr_item_postn[key]}`);
     // }
-
     onmove = undefined;
 
     // }
@@ -468,34 +459,24 @@ function SVGEndDrag(evt){
 }
 
 
-function cursor_proximity(evt){
-
-    const e = evt.target;
-    const postn = e.getMousePosition();
-    
-    let move_direction_chance = null;
-
-    if ( last_postn !== null ){
-        //Toward horizontal when true; else vertical.
-        move_direction_chance = Math.abs(postn.x - last_postn.x) > Math.abs(postn.y - last_postn.y) ? true : false; 
-    }
-
-}
-
-
 function point_trace(){
 
     console.log(" Inside point_trace " );
 
+    var svgRect =  document.getElementById("mainlayout").getBoundingClientRect();
     const collection = document.getElementsByClassName("itm");
+
+    console.log("collection.length : " +  collection.length);
     
     for (let i = 0; i < collection.length; i++) {
         let rect = document.getElementById(collection[i].id).getBoundingClientRect();
         let curr_id = collection[i].id;
-        curr_item_postn[curr_id] = rect;
-        x_items.set(curr_id , rect.x);
-        y_items.set(curr_id , rect.y);
-        find_closet(curr_id);
+        curr_item_postn[curr_id] = {"x" : (rect.x - svgRect.x) , "y" : (rect.y - svgRect.y)   , "width" : rect.width , "height" : rect.height};
+
+        x_items.set(curr_id , (rect.x - svgRect.x) );
+        y_items.set(curr_id , (rect.y - svgRect.y) );
+
+        find_closet(curr_id); 
     }
 
     console.log("curr_item_postn : " + curr_item_postn);
@@ -565,20 +546,25 @@ function find_closet(id){
 
 function item_coord(id){
 
-    let rect = curr_item_postn[id];
+    if (id !== undefined){
 
-    //console.log("Inside item_coord  : id : " + id +" , x: " + rect.x + ", y: " +  rect.y + ", right : " + rect.right + ", bottom : " + rect.bottom );
+        let rect = curr_item_postn[id];
 
-    let tcoord= {};
-    tcoord["x1"] = rect.x + (rect.width / 2);
-    tcoord["y1"] = rect.y;
-    tcoord["x2"] = rect.right;
-    tcoord["y2"] = rect.y + ( rect.height / 2);
-    tcoord["x3"] = rect.x + (rect.width / 2);
-    tcoord["y3"] = rect.bottom;
-    tcoord["x4"] = rect.x;
-    tcoord["y4"] = rect.y + ( rect.height / 2);
-    return tcoord;
+        console.log("Inside item_coord  : id : " + id ) 
+
+        let tcoord= {};
+
+        tcoord["x1"] = rect.x + (rect.width / 2);
+        tcoord["y1"] = rect.y;
+        tcoord["x2"] = rect.x + rect.width;
+        tcoord["y2"] = rect.y + ( rect.height / 2);
+        tcoord["x3"] = rect.x + (rect.width / 2);
+        tcoord["y3"] = rect.y + rect.height;
+        tcoord["x4"] = rect.x;
+        tcoord["y4"] = rect.y + ( rect.height / 2);
+        return tcoord;
+    }
+    
 
 }
 
