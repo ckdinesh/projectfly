@@ -51,6 +51,7 @@ function init(){
     // svg.addEventListener('pointermove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
     svg.addEventListener('dblclick', addtext); 
+    svg.addEventListener('keydown', SVGKeyPress);
 
     console.log("Initializing started..."); 
     
@@ -458,6 +459,29 @@ function SVGEndDrag(evt){
 
 }
 
+function SVGKeyPress(){
+
+
+    console.log("Inside  SVGKeyPress ");
+    if (e.classList.contains('draggable-selected')  ){
+
+        const key = evt.key;
+        const e = evt.target;
+        var svg = document.getElementById("mainlayout"); 
+
+        console.log("key : " + key);
+
+        if ( key === "Delete"  ){
+
+            svg.remove(e);
+
+        }
+
+    }
+
+
+}
+
 
 function point_trace(){
 
@@ -531,11 +555,11 @@ function find_closet(id){
         a = item_coord(id);
         b = item_coord(closet_id);
     
-        console.log("a.x1 : " + a.x1 + " , a.y1 : "+ a.y1  );
-        console.log("b.x1 : " + b.x1 + " , b.y1 : "+ b.y1  );
+        console.log("a.x1 : " + a["x1"] + " , a.y1 : "+ a["y1"]  );
+        console.log("b.x1 : " + b["x1"] + " , b.y1 : "+ b["y1"]  );
 
-        edge_highlight(a);
-        edge_highlight(b);
+        // edge_highlight(a);
+        // edge_highlight(b);
     } 
 
 
@@ -603,6 +627,8 @@ function edge_highlight(coord){
     svg.append(e4);
 
 }
+
+
 
 
 //Step 2
