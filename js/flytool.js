@@ -28,6 +28,9 @@ var last_postn = null;
 
 
 
+
+
+
 var currentElementSelection = undefined;
 //const selectionStyle = {"stroke":"yellow","stroke-width":"5","stroke-opacity":"0.4"};
 var selectedElement, offset, gtfm = undefined;
