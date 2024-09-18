@@ -18,40 +18,34 @@ const angle =   {
 var palette_items = JSON.parse(json_palette);
 var shape_pressed = 0;
 var onmove = undefined;
-
 var curr_item_postn = new Map();
+var item_anchor_postn = new Map();
 var x_items = new Map();
 var y_items = new Map();
 
-var last_postn = null;
+var prev_link = undefined;
 
-
-
-
-
-
+var start_point = {};
+var last_postn = {};
 
 var currentElementSelection = undefined;
 //const selectionStyle = {"stroke":"yellow","stroke-width":"5","stroke-opacity":"0.4"};
 var selectedElement, offset, gtfm = undefined;
 var linkableElement = undefined;
-
 const PALETTE_SIZE = {"WIDTH": 100 , "HEIGHT" : 600};
 
-
 window.onload = init;
+
+window.addEventListener("keydown", SVGKeyPress);
     
 function init(){
 
-    //const svg_palette = document.getElementById("palette"); 
     const svg = document.getElementById("mainlayout");     
 
     svg.addEventListener('mousedown', SVGStartDrag);
     svg.addEventListener('mousemove', SVGDrag);
-    // svg.addEventListener('pointermove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
     svg.addEventListener('dblclick', addtext); 
-    svg.addEventListener('keydown', SVGKeyPress);
 
     console.log("Initializing started..."); 
     
@@ -269,7 +263,7 @@ class Renderer {
             } else {
                 if (el.classList.contains('draggable-selected') ){
                     SA(el,"class", "draggable-selected linkable draggable itm");
-                    linkableElement = el;
+                    linkableElement = el;                    
                     console.log("linkableElement : " + linkableElement);
                 } else {
                     SA(el,"class", "draggable-selected draggable itm");
@@ -323,7 +317,6 @@ function create(){
         const cnode = e.cloneNode(true);
         SA(cnode, "class" , "draggable-selected draggable itm");
         SA(cnode,"id", random());
-        // SA(cnode,"tabindex", "0");
         console.log(cnode);
         svg.append(cnode);
         currentElementSelection = GA(cnode,"id");
@@ -392,26 +385,63 @@ function SVGDrag(evt){
 
     let e = evt.target;
     const id = GA(e,"id");
-    // if(id !== "mainlayout" &&  id !== null) {
-
     console.log("Inside SVGDrag : id :" + id);
-    // console.log(evt);
-
     
-        if (e.classList.contains('draggable-selected') && offset !== undefined){
+    if(id === "mainlayout" && linkableElement !== undefined) {
 
-            const coord = getMousePosition(evt);
+        const curr_postn = getMousePosition(evt);
+
+        // let possible_move_dir = 1; 
+        // if (last_postn ===  null) {
+        //     last_postn.x = curr_postn.x;
+        //     last_postn.y = curr_postn.y;
+        // } else if ( (last_postn["x"] - curr_postn.x ) < (last_postn["y"] - curr_postn.y ) ){
+        //     possible_move_dir = 0; 
+        // }
+        // console.log("linkableElement : " + linkableElement +  ", possible_move_dir : " + possible_move_dir );
+        // last_postn.x = curr_postn.x;
+        // last_postn.y = curr_postn.y;
+
+        if (linkableElement !== undefined && shape_pressed > 1) {
+            const start_point = item_coord(linkableElement.id);
+            const start = anchor_link(start_point,curr_postn);
+
+            const closet_point = item_coord(find_closet(linkableElement.id));
+            const end  = anchor_link(closet_point,curr_postn);
+
+            const svg = document.getElementById("mainlayout");  
+
+            if(prev_link !== undefined) {
+                prev_link.remove();
+            }   
+            const el = CE('line');
+            SA(el, "x1", start.x );
+            SA(el, "y1", start.y );
+            SA(el, "x2", end.x );
+            SA(el, "y2", end.y );
+            SA(el , "style" , "stroke:yellow;stroke-width:1");
+            svg.append(el);
+
+            prev_link = el;
+
+            console.log(el);
+
+            console.log("start.x : " +  start.x +  " , start.y : "+ start.y + " , end.x : " + end.x +  " , end.y : " + end.y  );
+
+        }        
+
+    }
     
-            if (currentElementSelection !== undefined){
-                    evt.preventDefault();            
-                    gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
-                    
-                    // gtfm.setTranslate(parseFloat(Math.abs(e.movementX)), parseFloat(Math.abs(e.movementY)));
-            }
+    if (e.classList.contains('draggable-selected') && offset !== undefined){
+
+        const coord = getMousePosition(evt);
+
+        if (currentElementSelection !== undefined){
+                evt.preventDefault();            
+                gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
+                
         }
-
-    // }
-
+    }
 
 }
 
@@ -419,13 +449,14 @@ function SVGEndDrag(evt){
 
     let e = evt.target;
     let id = GA(e,"id");
+    var svg = document.getElementById("mainlayout"); 
 
     // if(id !== "mainlayout" &&  id !== null) {
     console.log("Inside SVGEndDrag Id: " + id + " , onmove : " + onmove); 
     
     if (offset !== undefined) {
 
-        var svg = document.getElementById("mainlayout"); 
+        
 
         evt.preventDefault();
 
@@ -457,29 +488,27 @@ function SVGEndDrag(evt){
     // }
     point_trace();
 
+   svg.append(prev_link) ;
+   prev_link = undefined;
+   linkableElement = undefined;
+
 }
 
-function SVGKeyPress(){
-
+function SVGKeyPress(evt){
 
     console.log("Inside  SVGKeyPress ");
-    if (e.classList.contains('draggable-selected')  ){
+    console.log(evt.key);
+    const svg = document.getElementById("mainlayout");
 
-        const key = evt.key;
-        const e = evt.target;
-        var svg = document.getElementById("mainlayout"); 
-
-        console.log("key : " + key);
-
-        if ( key === "Delete"  ){
-
-            svg.remove(e);
-
-        }
+    if ( evt.key === "Delete"){
+       const clt =  document.getElementsByClassName("draggable-selected") ;
+    //    for (let i= 0 ; i < clt.length ; i++ ) {
+            let e = clt[0];
+            e.remove();
+            point_trace();
+    //    } 
 
     }
-
-
 }
 
 
@@ -495,12 +524,17 @@ function point_trace(){
     for (let i = 0; i < collection.length; i++) {
         let rect = document.getElementById(collection[i].id).getBoundingClientRect();
         let curr_id = collection[i].id;
-        curr_item_postn[curr_id] = {"x" : (rect.x - svgRect.x) , "y" : (rect.y - svgRect.y)   , "width" : rect.width , "height" : rect.height};
+        curr_item_postn[curr_id] = {  "x" : (rect.x - svgRect.x) 
+                                    , "y" : (rect.y - svgRect.y)   
+                                    , "width" : rect.width 
+                                    , "height" : rect.height};
 
         x_items.set(curr_id , (rect.x - svgRect.x) );
         y_items.set(curr_id , (rect.y - svgRect.y) );
 
-        find_closet(curr_id); 
+        //find_closet(curr_id); 
+
+        item_anchor_postn[curr_id] = item_coord(curr_id);
     }
 
     console.log("curr_item_postn : " + curr_item_postn);
@@ -510,7 +544,7 @@ function point_trace(){
         console.log(curr_item_postn[key]);
     }
 
-   
+  
     x_items.forEach( function(value,key) {
         console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
     });
@@ -520,6 +554,30 @@ function point_trace(){
 
     
     
+}
+
+function item_coord(id){
+
+    if (id !== undefined){
+
+        let rect = curr_item_postn[id];
+
+        console.log("Inside item_coord  : id : " + id ) 
+
+        let tcoord= {};
+
+        tcoord["x1"] = rect.x + (rect.width / 2);
+        tcoord["y1"] = rect.y;
+        tcoord["x2"] = rect.x + rect.width;
+        tcoord["y2"] = rect.y + ( rect.height / 2);
+        tcoord["x3"] = rect.x + (rect.width / 2);
+        tcoord["y3"] = rect.y + rect.height;
+        tcoord["x4"] = rect.x;
+        tcoord["y4"] = rect.y + ( rect.height / 2);
+        return tcoord;
+    }
+    
+
 }
 
 
@@ -551,82 +609,123 @@ function find_closet(id){
         });
         console.log("Id : " + id +  "  , closet_id : " + closet_id + " , x : " + x_items.get(closet_id));
 
-        let  a,b = undefined ;
-        a = item_coord(id);
-        b = item_coord(closet_id);
+        return closet_id;
+
+        // let  a,b = undefined ;
+        // a = item_coord(id);
+        // b = item_coord(closet_id);
     
-        console.log("a.x1 : " + a["x1"] + " , a.y1 : "+ a["y1"]  );
-        console.log("b.x1 : " + b["x1"] + " , b.y1 : "+ b["y1"]  );
+        // console.log("a.x1 : " + a["x1"] + " , a.y1 : "+ a["y1"]  );
+        // console.log("b.x1 : " + b["x1"] + " , b.y1 : "+ b["y1"]  );
 
         // edge_highlight(a);
         // edge_highlight(b);
-    } 
-
-
-    
+    }    
 
 }
 
+// anchor_link(start_point,curr_postn, possible_move_dir);
+function anchor_link(anchors, cursor_postn ){
 
-function item_coord(id){
+    let nearest = undefined;
+    let point = {};
+    
+    console.log("Inside anchor_link : " + cursor_postn.x);
+    // console.log("cursor_postn.x : " + cursor_postn.x);
+    // console.log("cursor_postn.y : " + cursor_postn.y);
+    // console.log("start_anchors.x1 : " + start_anchors.x1);
+    // console.log("start_anchors.x2 : " + start_anchors.x2);
+    // console.log("start_anchors.x3 : " + start_anchors.x3);
+    // console.log("start_anchors.x4 : " + start_anchors.x4);                              
+    // console.log("start_anchors.y1 : " + start_anchors.y1);
+    // console.log("start_anchors.y2 : " + start_anchors.y2);
+    // console.log("start_anchors.y3 : " + start_anchors.y3);
+    // console.log("start_anchors.y4 : " + start_anchors.y4);
+    // console.log("(start_anchors.x2 - cursor_postn.x) : " + (start_anchors.x2 - cursor_postn.x));
+    // console.log("(start_anchors.x4 - cursor_postn.x) : " + (start_anchors.x4 - cursor_postn.x));
 
-    if (id !== undefined){
+    a = Math.abs(anchors.x1 - cursor_postn.x) + Math.abs(anchors.y1 - cursor_postn.y);
+    b = Math.abs(anchors.x2 - cursor_postn.x) + Math.abs(anchors.y2 - cursor_postn.y);
+    c = Math.abs(anchors.x3 - cursor_postn.x) + Math.abs(anchors.y3 - cursor_postn.y);
+    d = Math.abs(anchors.x4 - cursor_postn.x) + Math.abs(anchors.y4 - cursor_postn.y);
+    x = [a , b , c ,d ];
+    console.log(x);
+    for(i in x ){
 
-        let rect = curr_item_postn[id];
-
-        console.log("Inside item_coord  : id : " + id ) 
-
-        let tcoord= {};
-
-        tcoord["x1"] = rect.x + (rect.width / 2);
-        tcoord["y1"] = rect.y;
-        tcoord["x2"] = rect.x + rect.width;
-        tcoord["y2"] = rect.y + ( rect.height / 2);
-        tcoord["x3"] = rect.x + (rect.width / 2);
-        tcoord["y3"] = rect.y + rect.height;
-        tcoord["x4"] = rect.x;
-        tcoord["y4"] = rect.y + ( rect.height / 2);
-        return tcoord;
+        if (nearest == undefined){
+            nearest = i;
+        } else if ( x[nearest] > x[i]) {
+            nearest = i;
+        }			
+        console.log(i);
+        console.log(x[i]);
     }
-    
+
+    console.log("nearest : " + nearest);
+
+    switch(nearest) {
+        case "0" : {
+            point["x"] = anchors.x1;
+            point["y"] = anchors.y1;
+            break;
+        }
+        case "1" : {
+            point["x"] = anchors.x2;
+            point["y"] = anchors.y2;
+            break;
+        }
+        case "2" : {
+            point["x"] = anchors.x3;
+            point["y"] = anchors.y3;
+            break;
+        }
+        case "3" : {
+            point["x"] = anchors.x4;
+            point["y"] = anchors.y4;
+            break;
+        }
+    }
+    console.log("point x : " + point.x + " , y : " + point.y);
+
+    return point;
 
 }
 
 
-function edge_highlight(coord){
+// function edge_highlight(coord){
 
-    var svg = document.getElementById("mainlayout"); 
+//     var svg = document.getElementById("mainlayout"); 
 
-    const e1 = CE("circle");
-    SA(e1, "cx" , coord.x1);
-    SA(e1, "cy" , coord.y1);
-    SA(e1, "r" , 2);
-    SA(e1, "fill" , "white");
+//     const e1 = CE("circle");
+//     SA(e1, "cx" , coord.x1);
+//     SA(e1, "cy" , coord.y1);
+//     SA(e1, "r" , 2);
+//     SA(e1, "fill" , "white");
 
-    const e2 = CE("circle");
-    SA(e2, "cx" , coord.x2);
-    SA(e2, "cy" , coord.y2);
-    SA(e2, "r" , 2);
-    SA(e2, "fill" , "white");
+//     const e2 = CE("circle");
+//     SA(e2, "cx" , coord.x2);
+//     SA(e2, "cy" , coord.y2);
+//     SA(e2, "r" , 2);
+//     SA(e2, "fill" , "white");
 
-    const e3 = CE("circle");
-    SA(e3, "cx" , coord.x3);
-    SA(e3, "cy" , coord.y3);
-    SA(e3, "r" , 2);
-    SA(e3, "fill" , "white");
+//     const e3 = CE("circle");
+//     SA(e3, "cx" , coord.x3);
+//     SA(e3, "cy" , coord.y3);
+//     SA(e3, "r" , 2);
+//     SA(e3, "fill" , "white");
 
-    const e4 = CE("circle");
-    SA(e4, "cx" , coord.x4);
-    SA(e4, "cy" , coord.y4);
-    SA(e4, "r" , 2);
-    SA(e4, "fill" , "white");
+//     const e4 = CE("circle");
+//     SA(e4, "cx" , coord.x4);
+//     SA(e4, "cy" , coord.y4);
+//     SA(e4, "r" , 2);
+//     SA(e4, "fill" , "white");
 
-    svg.append(e1);
-    svg.append(e2);
-    svg.append(e3);
-    svg.append(e4);
+//     svg.append(e1);
+//     svg.append(e2);
+//     svg.append(e3);
+//     svg.append(e4);
 
-}
+// }
 
 
 
