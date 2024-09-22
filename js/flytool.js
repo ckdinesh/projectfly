@@ -22,7 +22,7 @@ var curr_item_postn = new Map();
 var item_anchor_postn = new Map();
 var x_items = new Map();
 var y_items = new Map();
-
+var prev_drag_id = undefined;
 var prev_link = undefined;
 
 var start_point = {};
@@ -45,7 +45,8 @@ function init(){
     svg.addEventListener('mousedown', SVGStartDrag);
     svg.addEventListener('mousemove', SVGDrag);
     svg.addEventListener('mouseup', SVGEndDrag);
-    svg.addEventListener('dblclick', addtext); 
+    // svg.addEventListener('dblclick', addtext); 
+    svg.addEventListener('click', SVGClick); 
 
     console.log("Initializing started..."); 
     
@@ -235,7 +236,7 @@ class Renderer {
             if(k == "type" || k == "name") {continue};
             SA(e,k,d[k]);
         }     
-        SA(e,"onclick", "Renderer.itemSelected(event)")  ;
+        // SA(e,"onclick", "Renderer.itemSelected(event)")  ;
         SA(e,"id", `${this.item_name}-${random()}`);
         SA(e,"class","draggable palette");
         if (d.hasOwnProperty("x")){
@@ -259,28 +260,37 @@ class Renderer {
         console.log("Inside itemSelected Before: " + currentElementSelection);
         // if (currentElementSelection == null || currentElementSelection != eid){
             if (el.classList.contains('palette')){
-                SA(el,"class", "draggable-selected draggable palette zi0"); 
+                // SA(el,"class", "draggable-selected draggable palette zi0"); 
+                el.classList.toggle("draggable-selected");
             } else {
                 if (el.classList.contains('draggable-selected') ){
-                    SA(el,"class", "draggable-selected linkable draggable itm");
+                    // SA(el,"class", "draggable-selected linkable draggable itm");
+                    el.classList.toggle("linkable");
                     linkableElement = el;                    
                     console.log("linkableElement : " + linkableElement);
-                } else {
-                    SA(el,"class", "draggable-selected draggable itm");
+                } 
+                // else if (el.classList.contains('link') ) {
+                //     console.log("Link selected : " + eid);
+                //     el.classList.toggle("draggable-selected");
+                //     SA(el,"class", "draggable-selected link");
+                // } 
+                else {
+                    el.classList.toggle("draggable-selected");
+                    // SA(el,"class", "draggable-selected draggable itm");
                 }   
             }
             
             currentElementSelection = eid ; 
             console.log("Inside itemSelected After: " + currentElementSelection);
         // } 
-        //Renderer.itemDeselect(false);
+        Renderer.itemDeselect(false);
     }
 
     static itemDeselect(a){
 
         console.log("Inside itemDeselect Before: " + currentElementSelection);
 
-        //Click on svg layout
+        //Click on svg mainlayout
         if (a == true){
             currentElementSelection = undefined;
         }
@@ -291,12 +301,13 @@ class Renderer {
             const e = nodes[i];
             const id = GA(e, "id");
             if ( id !==  currentElementSelection ){
-                if (e.classList.contains('palette') ) {
+                if (e.classList.contains('palette')) {
                     SA(e, "class", "draggable palette");
-                } else {
-                    SA(e, "class", "draggable");
-                }
-                
+                } else if (e.classList.contains('itm')) {
+                    SA(e, "class", "draggable itm");
+                } else if (e.classList.contains('link')) {
+                    SA(e, "class", "draggable link");
+                }                                  
             }           
         }
 
@@ -315,7 +326,7 @@ function create(){
     if (e !== null){
         
         const cnode = e.cloneNode(true);
-        SA(cnode, "class" , "draggable-selected draggable itm");
+        SA(cnode, "class" , "new-element itm");
         SA(cnode,"id", random());
         console.log(cnode);
         svg.append(cnode);
@@ -347,7 +358,7 @@ function SVGStartDrag(evt){
 
         //Create a new item when a palette item is selected for drag else drag item along the main layout.
         if (e.classList.contains('palette')){
-            console.log("Inside SVGStartDrag : Calling create()")
+            // console.log("Inside SVGStartDrag : Calling create()")
             selectedElement = create(); 
         } else {
             selectedElement  = e ;
@@ -356,10 +367,10 @@ function SVGStartDrag(evt){
         onmove = GA(selectedElement , "id");
 
         //Only on Item clicks
-        if (e.classList.contains('draggable-selected')){
-                console.log("Inside If of SVGStartDrag ");  
+        if (!e.classList.contains('draggable')){
+                // console.log("Inside If of SVGStartDrag ");  
                 console.log(evt.target);
-                console.log("e.classList.contains('palette') : " + e.classList.contains('palette'))
+                // console.log("e.classList.contains('palette') : " + e.classList.contains('palette'))
                 
                 const svg = document.getElementById("mainlayout");              
 
@@ -405,34 +416,27 @@ function SVGDrag(evt){
         if (linkableElement !== undefined && shape_pressed > 1) {
             const start_point = item_coord(linkableElement.id);
             const start = anchor_link(start_point,curr_postn);
-
-            const closet_point = item_coord(find_closet(linkableElement.id));
+            const closet_point = item_coord(item_close_to_cursor(linkableElement.id , curr_postn));
             const end  = anchor_link(closet_point,curr_postn);
-
-            const svg = document.getElementById("mainlayout");  
+             
 
             if(prev_link !== undefined) {
                 prev_link.remove();
             }   
-            const el = CE('line');
-            SA(el, "x1", start.x );
-            SA(el, "y1", start.y );
-            SA(el, "x2", end.x );
-            SA(el, "y2", end.y );
-            SA(el , "style" , "stroke:yellow;stroke-width:1");
-            svg.append(el);
 
-            prev_link = el;
+            prev_link = draw_connecter(start,end);
+            // console.log(el);
 
-            console.log(el);
-
-            console.log("start.x : " +  start.x +  " , start.y : "+ start.y + " , end.x : " + end.x +  " , end.y : " + end.y  );
+            console.log("start.x : " +  start.x 
+                +  " , start.y : "   + start.y 
+                + " , end.x : " + end.x 
+                +  " , end.y : " + end.y  );
 
         }        
 
     }
     
-    if (e.classList.contains('draggable-selected') && offset !== undefined){
+    if (!e.classList.contains('draggable') && offset !== undefined){
 
         const coord = getMousePosition(evt);
 
@@ -454,9 +458,7 @@ function SVGEndDrag(evt){
     // if(id !== "mainlayout" &&  id !== null) {
     console.log("Inside SVGEndDrag Id: " + id + " , onmove : " + onmove); 
     
-    if (offset !== undefined) {
-
-        
+    if (offset !== undefined) {        
 
         evt.preventDefault();
 
@@ -468,7 +470,6 @@ function SVGEndDrag(evt){
             console.log(`${key} : ${rect[key]}`);
         }
         curr_item_postn[id] = rect;
-
         
         offset = undefined;
         selectedElement= undefined; 
@@ -476,7 +477,7 @@ function SVGEndDrag(evt){
 
     }    
     
-    Renderer.itemDeselect(false);
+    // Renderer.itemDeselect(false);
 
     console.log("curr_item_postn : " + curr_item_postn);
 
@@ -493,6 +494,50 @@ function SVGEndDrag(evt){
    linkableElement = undefined;
 
 }
+
+
+function SVGClick(evt){
+
+    const e = evt.target;
+    if (e.classList.contains("itm")) {
+        msg(e, "Before : itm Id : " + e.id);
+
+        if (e.classList.contains("draggable") || e.classList.contains("new-element")) {
+            e.classList.add("draggable-selected");
+            e.classList.remove("draggable");
+            e.classList.remove("new-element")
+        } else if(e.classList.contains("draggable-selected")){
+            e.classList.add("linkable");
+            e.classList.remove("draggable-selected");
+            linkableElement = e;
+        } else if(e.classList.contains("linkable")){
+            e.classList.add("draggable");
+            e.classList.remove("linkable");
+            linkableElement = undefined;
+        } 
+        // e.classList.toggle("draggable-selected");
+        // linkableElement = undefined;
+        
+        // if (e.classList.contains("draggable-selected")){
+        //     e.classList.toggle("linkable");
+        //     linkableElement = e;
+        // } 
+        // else {
+        //     e.classList.toggle("draggable");
+        // }   
+        msg(e, "After : itm Id : " + e.id);     
+    }
+    if (e.classList.contains("palette")) {
+        msg(e, "palette Id : " + e.id);
+        e.classList.toggle("draggable-selected");
+    }
+    if (e.classList.contains("link")) {
+        msg(e, "Link Id : " + e.id);
+        e.classList.toggle("draggable-selected");
+    }
+
+}
+
 
 function SVGKeyPress(evt){
 
@@ -511,6 +556,41 @@ function SVGKeyPress(evt){
     }
 }
 
+function draw_connecter(start, end){
+
+    const svg = document.getElementById("mainlayout"); 
+    let x1,x2,x3,x4,y1,y2,y3,y4 = undefined;
+
+    x_s = start.x;
+    y_s = start.y;
+    x_e = end.x; 
+    y_e = end.y; 
+    
+    if ( x_s === x_e || y_s === y_e){
+        path_d =`M${x_s} ${y_s} L${x_e} ${y_e}` ;
+    } else if (x_s !== x_e || y_s !== y_e){        
+
+
+        path_d =`M${x_s} ${y_s} L${x_s + 20 } ${y_s}   L${x_s + 20} ${y_e} L${x_e} ${y_e}` ;
+        console.log(path_d);
+    }
+    const el = CE('path');
+    SA(el, "id", `Path-${random()}`);
+    SA(el, "d", path_d );
+    SA(el , "style" , "fill:none;stroke:yellow;stroke-width:2");
+    SA(el , "class" , "link");
+    svg.append(el);
+    return el;
+}
+
+
+function msg(el,txt){
+    const e = document.getElementById("message");
+    const s = e.innerHTML;
+    e.innerHTML=  s + "</br>Selected " + txt + ", Total no:of shapes : " + shape_pressed + " , Present Class : " + GA(el,"class");
+}
+
+
 
 function point_trace(){
 
@@ -519,7 +599,7 @@ function point_trace(){
     var svgRect =  document.getElementById("mainlayout").getBoundingClientRect();
     const collection = document.getElementsByClassName("itm");
 
-    console.log("collection.length : " +  collection.length);
+    // console.log("collection.length : " +  collection.length);
     
     for (let i = 0; i < collection.length; i++) {
         let rect = document.getElementById(collection[i].id).getBoundingClientRect();
@@ -539,18 +619,18 @@ function point_trace(){
 
     console.log("curr_item_postn : " + curr_item_postn);
 
-    for (const key in curr_item_postn) {
-        console.log(`${key} : ${curr_item_postn[key]}`);
-        console.log(curr_item_postn[key]);
-    }
+    // for (const key in curr_item_postn) {
+    //     console.log(`${key} : ${curr_item_postn[key]}`);
+    //     console.log(curr_item_postn[key]);
+    // }
 
   
-    x_items.forEach( function(value,key) {
-        console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
-    });
-    y_items.forEach( function(value,key) {
-        console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
-    });
+    // x_items.forEach( function(value,key) {
+    //     console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
+    // });
+    // y_items.forEach( function(value,key) {
+    //     console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
+    // });
 
     
     
@@ -562,7 +642,7 @@ function item_coord(id){
 
         let rect = curr_item_postn[id];
 
-        console.log("Inside item_coord  : id : " + id ) 
+        // console.log("Inside item_coord  : id : " + id ) 
 
         let tcoord= {};
 
@@ -580,7 +660,31 @@ function item_coord(id){
 
 }
 
+function item_close_to_cursor(start_id , point){
 
+    let close_id , prev_dist = undefined;
+
+    for( i in curr_item_postn){
+        if ( i !== "mainlayout" && i !== start_id) {
+            // console.log("item_close_to_cursor : id : " + i);
+            let dist = Math.abs(curr_item_postn[i].x - point.x) +  Math.abs(curr_item_postn[i].y - point.y);
+            // console.log("item_close_to_cursor : dist : " + dist);
+            if (close_id === undefined){
+                prev_dist = dist;
+                close_id = i;
+            } else {
+                prev_dist = dist < prev_dist ? dist : prev_dist;
+                close_id = ( prev_dist === dist ) ? i : close_id;
+            }  
+        }
+    }
+    // console.log("item_close_to_cursor : close_id : " + close_id);
+    return close_id;
+}
+
+
+// input element id 
+// output closet element id
 function find_closet(id){
 
 

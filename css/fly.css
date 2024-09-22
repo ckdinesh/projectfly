@@ -7,14 +7,14 @@
   .draggable-selected {
     cursor: move;   
     stroke: yellow;
-    stroke-width : 5;
+    stroke-width : 3;
     stroke-opacity : 0.4;
   }
 
   .linkable {
     cursor: move;   
     stroke: purple;
-    stroke-width : 2;
+    stroke-width : 4;
     stroke-opacity : 0.9;
   }
 
@@ -26,3 +26,11 @@
     position: absolute;
     z-index: -1;
   }
+
+  .new-element {
+    cursor: move;   
+    stroke: yellow;
+    stroke-width : 3;
+    stroke-opacity : 0.4;
+  }
+
