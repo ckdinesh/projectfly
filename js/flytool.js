@@ -18,6 +18,8 @@ const angle =   {
 var palette_items = JSON.parse(json_palette);
 var shape_pressed = 0;
 var onmove = undefined;
+var curr_item_postn_active = [];
+var curr_item_postn_inactive = [];
 var curr_item_postn = new Map();
 var item_anchor_postn = new Map();
 var x_items = new Map();
@@ -470,6 +472,9 @@ function SVGEndDrag(evt){
             console.log(`${key} : ${rect[key]}`);
         }
         curr_item_postn[id] = rect;
+        if(curr_item_postn_active.indexOf(id) == -1 ){
+            curr_item_postn_active.push(id);
+        }        
         
         offset = undefined;
         selectedElement= undefined; 
@@ -481,9 +486,9 @@ function SVGEndDrag(evt){
 
     console.log("curr_item_postn : " + curr_item_postn);
 
-    // for (const key in curr_item_postn) {
-    //     console.log(`${key} : ${curr_item_postn[key]}`);
-    // }
+    for (const key in curr_item_postn) {
+        console.log(`${key} : ${curr_item_postn[key]}`);
+    }
     onmove = undefined;
 
     // }
@@ -550,29 +555,45 @@ function SVGKeyPress(evt){
     //    for (let i= 0 ; i < clt.length ; i++ ) {
             let e = clt[0];
             e.remove();
+            console.log("curr_item_postn_active.indexOf(e.id) : " + curr_item_postn_active.indexOf(e.id));
+            curr_item_postn_active.splice(curr_item_postn_active.indexOf(e.id) , 1);
+            console.log("curr_item_postn_active : " + curr_item_postn_active);
             point_trace();
     //    } 
 
     }
 }
 
-function draw_connecter(start, end){
+function draw_connecter(start, end ){
 
     const svg = document.getElementById("mainlayout"); 
     let x1,x2,x3,x4,y1,y2,y3,y4 = undefined;
 
-    x_s = start.x;
-    y_s = start.y;
-    x_e = end.x; 
-    y_e = end.y; 
-    
+    const x_s = start.x;
+    const y_s = start.y;
+    const pos_s = start.position;
+    const x_e = end.x; 
+    const y_e = end.y; 
+    const pos_e = end.position;
+    const edge_delta = 20;
+
+
     if ( x_s === x_e || y_s === y_e){
         path_d =`M${x_s} ${y_s} L${x_e} ${y_e}` ;
-    } else if (x_s !== x_e || y_s !== y_e){        
+    } else {        
+        
+        x1 =  (pos_s == 0 ? x_s : ( pos_s == 1 ?  x_s + edge_delta : ( pos_s == 2 ? x_s :  ( pos_s == 3 ? x_s - edge_delta : x_s )))); 
+        y1 =  (pos_s == 0 ? y_s - edge_delta : ( pos_s == 1 ?  y_s : ( pos_s == 2 ? y_s +  edge_delta :  ( pos_s == 3 ? y_s : y_s ))));
 
+        x2 =  (pos_e == 0 ? x_e : ( pos_e == 1 ?  x_e + edge_delta : ( pos_e == 2 ? x_e :  ( pos_e == 3 ? x_e - edge_delta : x_e )))); 
+        y2 =  (pos_e == 0 ? y_e - edge_delta : ( pos_e == 1 ?  y_e : ( pos_e == 2 ? y_e +  edge_delta :  ( pos_e == 3 ? y_e : y_e ))));
 
-        path_d =`M${x_s} ${y_s} L${x_s + 20 } ${y_s}   L${x_s + 20} ${y_e} L${x_e} ${y_e}` ;
+        
+        path_d =`M${x_s} ${y_s}  L${x1} ${y1}   L${x2} ${y2}  L${x_e} ${y_e}` ;
         console.log(path_d);
+
+
+
     }
     const el = CE('path');
     SA(el, "id", `Path-${random()}`);
@@ -580,6 +601,7 @@ function draw_connecter(start, end){
     SA(el , "style" , "fill:none;stroke:yellow;stroke-width:2");
     SA(el , "class" , "link");
     svg.append(el);
+    console.log(svg.innerHTML)
     return el;
 }
 
@@ -664,21 +686,22 @@ function item_close_to_cursor(start_id , point){
 
     let close_id , prev_dist = undefined;
 
-    for( i in curr_item_postn){
-        if ( i !== "mainlayout" && i !== start_id) {
-            // console.log("item_close_to_cursor : id : " + i);
-            let dist = Math.abs(curr_item_postn[i].x - point.x) +  Math.abs(curr_item_postn[i].y - point.y);
-            // console.log("item_close_to_cursor : dist : " + dist);
-            if (close_id === undefined){
-                prev_dist = dist;
-                close_id = i;
-            } else {
-                prev_dist = dist < prev_dist ? dist : prev_dist;
-                close_id = ( prev_dist === dist ) ? i : close_id;
-            }  
-        }
-    }
-    // console.log("item_close_to_cursor : close_id : " + close_id);
+    curr_item_postn_active.forEach( (value) => {
+            console.log("item_close_to_cursor : " + value );
+            if ( value !== "mainlayout" && value !== start_id) {
+                // console.log("item_close_to_cursor : id : " + i);
+                let dist = Math.abs(curr_item_postn[value].x - point.x) +  Math.abs(curr_item_postn[value].y - point.y);
+                // console.log("item_close_to_cursor : dist : " + dist);
+                if (close_id === undefined){
+                    prev_dist = dist;
+                    close_id = value;
+                } else {
+                    prev_dist = dist < prev_dist ? dist : prev_dist;
+                    close_id = ( prev_dist === dist ) ? value : close_id;
+                }  
+            } 
+        }   
+    );
     return close_id;
 }
 
@@ -715,15 +738,6 @@ function find_closet(id){
 
         return closet_id;
 
-        // let  a,b = undefined ;
-        // a = item_coord(id);
-        // b = item_coord(closet_id);
-    
-        // console.log("a.x1 : " + a["x1"] + " , a.y1 : "+ a["y1"]  );
-        // console.log("b.x1 : " + b["x1"] + " , b.y1 : "+ b["y1"]  );
-
-        // edge_highlight(a);
-        // edge_highlight(b);
     }    
 
 }
@@ -735,18 +749,6 @@ function anchor_link(anchors, cursor_postn ){
     let point = {};
     
     console.log("Inside anchor_link : " + cursor_postn.x);
-    // console.log("cursor_postn.x : " + cursor_postn.x);
-    // console.log("cursor_postn.y : " + cursor_postn.y);
-    // console.log("start_anchors.x1 : " + start_anchors.x1);
-    // console.log("start_anchors.x2 : " + start_anchors.x2);
-    // console.log("start_anchors.x3 : " + start_anchors.x3);
-    // console.log("start_anchors.x4 : " + start_anchors.x4);                              
-    // console.log("start_anchors.y1 : " + start_anchors.y1);
-    // console.log("start_anchors.y2 : " + start_anchors.y2);
-    // console.log("start_anchors.y3 : " + start_anchors.y3);
-    // console.log("start_anchors.y4 : " + start_anchors.y4);
-    // console.log("(start_anchors.x2 - cursor_postn.x) : " + (start_anchors.x2 - cursor_postn.x));
-    // console.log("(start_anchors.x4 - cursor_postn.x) : " + (start_anchors.x4 - cursor_postn.x));
 
     a = Math.abs(anchors.x1 - cursor_postn.x) + Math.abs(anchors.y1 - cursor_postn.y);
     b = Math.abs(anchors.x2 - cursor_postn.x) + Math.abs(anchors.y2 - cursor_postn.y);
@@ -789,7 +791,9 @@ function anchor_link(anchors, cursor_postn ){
             break;
         }
     }
-    console.log("point x : " + point.x + " , y : " + point.y);
+
+    point["position"] = nearest;
+    console.log("point x : " + point.x + " , y : " + point.y + ", position : " + point.position);
 
     return point;
 
