@@ -567,7 +567,7 @@ function SVGKeyPress(evt){
 function draw_connecter(start, end ){
 
     const svg = document.getElementById("mainlayout"); 
-    let x1,x2,x3,x4,y1,y2,y3,y4 = undefined;
+    let x1,a,x4,y1,b,y4 ,O1, O2 , O3 , c= undefined;
 
     const x_s = start.x;
     const y_s = start.y;
@@ -575,22 +575,90 @@ function draw_connecter(start, end ){
     const x_e = end.x; 
     const y_e = end.y; 
     const pos_e = end.position;
-    const edge_delta = 20;
+    const edge_delta = 30;
+    let path_flag = 0;
+    let almost_items_in_line = 0;
+    let items_in_line = 0;
+
+    let start_width ,start_height , end_width , end_height = undefined;
+    
+    start_width = curr_item_postn[start.id].width;
+    start_height = curr_item_postn[start.id].height;
+    end_width = curr_item_postn[end.id].width;
+    end_height = curr_item_postn[end.id].height;
+
+    // revisit here after unit testing
+    if ( ( Math.abs(x_s-x_e) <= (start_width/2)) ||  ( Math.abs(y_s-y_e) <= (start_height/2)) || ( Math.abs(x_s-x_e) <= (end_width/2)) ||  ( Math.abs(y_s-y_e) <= (end_height/2))  ) {
+        almost_items_in_line = 1 ;
+    } else if ( x_s == x_e || y_s == y_e) {
+        items_in_line = 1 ;
+    }
+
+    x1 =  (pos_s == 0 ? x_s : ( pos_s == 1 ?  x_s + edge_delta : ( pos_s == 2 ? x_s :  ( pos_s == 3 ? x_s - edge_delta : x_s )))); 
+    y1 =  (pos_s == 0 ? y_s - edge_delta : ( pos_s == 1 ?  y_s : ( pos_s == 2 ? y_s +  edge_delta :  ( pos_s == 3 ? y_s : y_s ))));
+
+    x4 =  (pos_e == 0 ? x_e : ( pos_e == 1 ?  x_e + edge_delta : ( pos_e == 2 ? x_e :  ( pos_e == 3 ? x_e - edge_delta : x_e )))); 
+    y4 =  (pos_e == 0 ? y_e - edge_delta : ( pos_e == 1 ?  y_e : ( pos_e == 2 ? y_e +  edge_delta :  ( pos_e == 3 ? y_e : y_e ))));
+
+    let dx = x4-x1;
+    let dy = y4-y1;
 
 
-    if ( x_s === x_e || y_s === y_e){
+    let quad = x4 > x1 && y4 < y1 ? 1 : ( x4 > x1 && y4 > y1 ? 2 : ( x4 < x1 && y4 > y1 ? 3 : ( x4 < x1 && y4 < y1 ? 4 : 0 )));
+
+
+    if (items_in_line == 1){
         path_d =`M${x_s} ${y_s} L${x_e} ${y_e}` ;
-    } else {        
-        
-        x1 =  (pos_s == 0 ? x_s : ( pos_s == 1 ?  x_s + edge_delta : ( pos_s == 2 ? x_s :  ( pos_s == 3 ? x_s - edge_delta : x_s )))); 
-        y1 =  (pos_s == 0 ? y_s - edge_delta : ( pos_s == 1 ?  y_s : ( pos_s == 2 ? y_s +  edge_delta :  ( pos_s == 3 ? y_s : y_s ))));
+    } else {            
+ 
+        console.log("Inside Draw_connecter : quad : " 
+            + quad + ", pos_s : " 
+            + pos_s + ", pos_e : "
+            + pos_e + ", x4 : " 
+            + x4 + ", y4 : " 
+            + y4 + ", almost_items_in_line : "
+            + almost_items_in_line )  ;
 
-        x2 =  (pos_e == 0 ? x_e : ( pos_e == 1 ?  x_e + edge_delta : ( pos_e == 2 ? x_e :  ( pos_e == 3 ? x_e - edge_delta : x_e )))); 
-        y2 =  (pos_e == 0 ? y_e - edge_delta : ( pos_e == 1 ?  y_e : ( pos_e == 2 ? y_e +  edge_delta :  ( pos_e == 3 ? y_e : y_e ))));
+        if (quad == 1) {   
+            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==0 || pos_e==3 || pos_e==2 ) )   {
+                O1 = "V" ; a = y4; path_flag = 1;
+            }  
+            if( (pos_s==2 ) && ( pos_e==3 || pos_e==2 || pos_e==1 ) )  {
+                O1 = "H" ; a = x4; path_flag = 1;
+            }  
+            if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 0 )  {
+                O1 = "H" ; a = x1 + start_width + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } 
+            if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 + ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } 
+            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   {
+                O1 = "V" ; a = ( y4 - ((y4 - y1) / 2) ); O2 = "H" ; b = x4  ;path_flag = 2;
+            }  
+            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 1 )  {
+                O1 = "V" ; a = (pos_s==3 || pos_s==1) ? start_height/2 + (edge_delta * 2) : start_height/2 + edge_delta ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            }            
+            
+        }  else if (quad == 2){
 
+ 
+        }  else if (quad == 3){
+            
+        }  else if (quad == 4){
+            
+        }
+
+               
+        console.log("Inside Draw_connecter : path_flag : " + path_flag + ", path : " + `M${x_s} ${y_s}  L${x1} ${y1}  ${O1} ${a} ${O2} ${b} ${O3} ${c} L${x4} ${y4}  L${x_e} ${y_e}`);
+
+
+        if(path_flag === 1){
+            path_d =`M${x_s} ${y_s}  L${x1} ${y1}  ${O1}${a} L${x4} ${y4}  L${x_e} ${y_e}` ;
+        } else if (path_flag === 2) {
+            path_d =`M${x_s} ${y_s}  L${x1} ${y1}  ${O1}${a} ${O2}${b} L${x4} ${y4}  L${x_e} ${y_e}` ;
+        }
         
-        path_d =`M${x_s} ${y_s}  L${x1} ${y1}   L${x2} ${y2}  L${x_e} ${y_e}` ;
-        console.log(path_d);
+        console.log("Inside Draw_connecter : path_d : " + path_d);
 
 
 
@@ -601,7 +669,7 @@ function draw_connecter(start, end ){
     SA(el , "style" , "fill:none;stroke:yellow;stroke-width:2");
     SA(el , "class" , "link");
     svg.append(el);
-    console.log(svg.innerHTML)
+    // console.log(svg.innerHTML)
     return el;
 }
 
@@ -676,6 +744,7 @@ function item_coord(id){
         tcoord["y3"] = rect.y + rect.height;
         tcoord["x4"] = rect.x;
         tcoord["y4"] = rect.y + ( rect.height / 2);
+        tcoord["id"] = id;
         return tcoord;
     }
     
@@ -773,21 +842,25 @@ function anchor_link(anchors, cursor_postn ){
         case "0" : {
             point["x"] = anchors.x1;
             point["y"] = anchors.y1;
+            point["id"] = anchors.id;
             break;
         }
         case "1" : {
             point["x"] = anchors.x2;
             point["y"] = anchors.y2;
+            point["id"] = anchors.id;
             break;
         }
         case "2" : {
             point["x"] = anchors.x3;
             point["y"] = anchors.y3;
+            point["id"] = anchors.id;
             break;
         }
         case "3" : {
             point["x"] = anchors.x4;
             point["y"] = anchors.y4;
+            point["id"] = anchors.id;
             break;
         }
     }
