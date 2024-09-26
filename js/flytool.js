@@ -620,32 +620,103 @@ function draw_connecter(start, end ){
             + almost_items_in_line )  ;
 
         if (quad == 1) {   
-            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==0 || pos_e==3 || pos_e==2 ) )   {
+            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==0 || pos_e==3 || pos_e==2 ) && almost_items_in_line == 0)   { // modified
                 O1 = "V" ; a = y4; path_flag = 1;
-            }  
-            if( (pos_s==2 ) && ( pos_e==3 || pos_e==2 || pos_e==1 ) )  {
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==2 || pos_e==1 )  && almost_items_in_line == 0 )  {
                 O1 = "H" ; a = x4; path_flag = 1;
-            }  
-            if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 0 )  {
-                O1 = "H" ; a = x1 + start_width + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
-            } 
-            if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 1 )  {
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==1 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = pos_e==3 ? x1 - (start_width/2 + edge_delta*2): x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==2 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==3 || pos_s==0 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   { //Newly added
+                O1 = "V" ; a = y4 + ( end_height/2  + edge_delta * 2 ) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 0 )  {
+                O1 = "H" ; a = x1 + (start_width + edge_delta/2) ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 1 )  {
                 O1 = "H" ; a = x1 + ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
-            } 
-            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   {
-                O1 = "V" ; a = ( y4 - ((y4 - y1) / 2) ); O2 = "H" ; b = x4  ;path_flag = 2;
-            }  
-            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 1 )  {
-                O1 = "V" ; a = (pos_s==3 || pos_s==1) ? start_height/2 + (edge_delta * 2) : start_height/2 + edge_delta ;  O2 = "H" ; b = x4  ; path_flag = 2;
-            }            
-            
-        }  else if (quad == 2){
+            } else if( (pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   { //Modified
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
+                O1 = "V" ; a = y1 - ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==3 ||pos_e==1) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x4 ; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==0) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            }    
 
- 
+        }  else if (quad == 2){
+            if( (pos_s==3 || pos_s==2 || pos_s==1 ) && ( pos_e==0 || pos_e==3 || pos_e==2 ) && almost_items_in_line == 0)   { // modified
+                O1 = "V" ; a = y4; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==3 || pos_e==0 || pos_e==1 ) && almost_items_in_line == 0  )  {
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==3 || pos_e==1 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = pos_e==3 ? x1 - (start_width/2 + edge_delta*2): x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==0 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==3 || pos_s==2 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   { //Newly added
+                O1 = "V" ; a = y4 - ( end_height/2  + edge_delta * 2 ) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==2 ) && almost_items_in_line == 0 )  {
+                O1 = "H" ; a = x1 + (start_width + edge_delta/2) ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==2 ) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 + ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==1 ) && ( pos_e==1 ) && almost_items_in_line == 0 )   {//Modified
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
+                O1 = "V" ; a = y1 + ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==1) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x4 ; path_flag = 1;
+            }  else if( (pos_s==2 ) && ( pos_e==2) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            }                
         }  else if (quad == 3){
-            
+            if( (pos_s==3 || pos_s==2 || pos_s==1 ) && ( pos_e==0 || pos_e==1 || pos_e==2 ) && almost_items_in_line == 0)   { // modified
+                O1 = "V" ; a = y4; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==3 || pos_e==0 || pos_e==1 ) && almost_items_in_line == 0  )  {
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==3 || pos_e==1 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = pos_e==3 ? x1 - (start_width/2 + edge_delta*2): x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==0 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==2 || pos_s==1 ) && ( pos_e==3 ) && almost_items_in_line == 0 )   { //Newly added
+                O1 = "V" ; a = y4 - ( end_height/2  + edge_delta * 2 ) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==2 ) && almost_items_in_line == 0 )  {
+                O1 = "H" ; a = x1 - (start_width + edge_delta/2) ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==2 ) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==3 ) && ( pos_e==3 ) && almost_items_in_line == 0 )   {//Modified
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
+                O1 = "V" ; a = y1 + ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==1) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x4 ; path_flag = 1;
+            }  else if( (pos_s==2 ) && ( pos_e==2) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            }                        
         }  else if (quad == 4){
-            
+            if( (pos_s==3 || pos_s==0 || pos_s==1 ) && ( pos_e==0 || pos_e==1 || pos_e==2 ) && almost_items_in_line == 0)   { // modified
+                O1 = "V" ; a = y4; path_flag = 1;
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==2 || pos_e==1 ) && almost_items_in_line == 0  )  {
+                O1 = "H" ; a = x4; path_flag = 1
+            } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==1 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = pos_e==3 ? x1 - (start_width/2 + edge_delta*2): x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==2 )  && almost_items_in_line == 1 )  {//Newly added
+                O1 = "H" ; a = x1 + (start_width/2 + edge_delta*2) ; O2="V";b=y4;path_flag = 2;
+            } else if( (pos_s==0 || pos_s==1 ) && ( pos_e==3 ) && almost_items_in_line == 0 )   { //Newly added
+                O1 = "V" ; a = y4 + ( end_height/2  + edge_delta * 2 ) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 0 )  {
+                O1 = "H" ; a = x1 - (start_width + edge_delta/2) ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            } else if( (pos_s==3 ) && ( pos_e==3 ) && almost_items_in_line == 0 )   { //Modified
+                O1 = "H" ; a = x4; path_flag = 1;
+            } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
+                O1 = "V" ; a = y1 - ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+            } else if( (pos_s==0 ) && ( pos_e==3 ||pos_e==1) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x4 ; path_flag = 1;
+            } else if( (pos_s==0 ) && ( pos_e==0) && almost_items_in_line == 1 )  {
+                O1 = "H" ; a = x1 - ( start_width < end_width ? end_width : start_width ) + edge_delta/2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
+            }   
+
         }
 
                
