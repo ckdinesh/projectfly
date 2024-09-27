@@ -33,4 +33,7 @@
     stroke-width : 3;
     stroke-opacity : 0.4;
   }
+  .marker {
+    fill: purple
+  }
 
