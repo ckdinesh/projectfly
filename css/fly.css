@@ -33,7 +33,10 @@
     stroke-width : 3;
     stroke-opacity : 0.4;
   }
+  .marker-selected {
+    fill: rgb(199, 106, 199)
+  }
   .marker {
-    fill: purple
+    fill: yellow
   }
 

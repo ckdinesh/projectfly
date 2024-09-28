@@ -240,6 +240,7 @@ class Renderer {
         }     
         // SA(e,"onclick", "Renderer.itemSelected(event)")  ;
         SA(e,"id", `${this.item_name}-${random()}`);
+        SA(e,"type",`${this.item_name}`);
         SA(e,"class","draggable palette");
         if (d.hasOwnProperty("x")){
             const grp = innerDisplay(e, this.data.name , this.data.x + 5, this.data.y + 15 );
@@ -333,9 +334,10 @@ function create(){
         console.log(cnode);
         svg.append(cnode);
         currentElementSelection = GA(cnode,"id");
-        console.log("create() : currentElementSelection :" +currentElementSelection);
+        console.log("create() : currentElementSelection :" +currentElementSelection + " , type : " + GA(cnode, "type"));
         shape_pressed++;
         console.log("shape_created : " + shape_pressed);
+        
         return cnode;
     }
     
@@ -467,11 +469,11 @@ function SVGEndDrag(evt){
         const coord = getMousePosition(evt);
         gtfm.setTranslate(coord.x - offset.x, coord.y - offset.y);
 
-        let rect = document.getElementById(onmove).getBoundingClientRect();
-        for (const key in rect) {
-            console.log(`${key} : ${rect[key]}`);
-        }
-        curr_item_postn[id] = rect;
+        // let rect = document.getElementById(onmove).getBoundingClientRect();
+        // for (const key in rect) {
+        //     console.log(`${key} : ${rect[key]}`);
+        // }
+        // curr_item_postn[id] = rect;
         if(curr_item_postn_active.indexOf(id) == -1 ){
             curr_item_postn_active.push(id);
         }        
@@ -562,6 +564,17 @@ function SVGKeyPress(evt){
     //    } 
 
     }
+    if ( evt.key === "L"){
+            localStorage.clear();
+            let htm = document.getElementById('mainlayout').innerHTML;
+            localStorage.setItem('htmtext', htm);           
+            const innerhtm = localStorage.getItem('htmtext');
+            alert(innerhtm); 
+     }
+     if ( evt.key === "D"){
+        localStorage.clear();
+     }
+
 }
 
 function draw_connecter(start, end ){
@@ -640,10 +653,13 @@ function draw_connecter(start, end ){
                 } else if( (pos_s==2 ) && ( pos_e==0 ) && almost_items_in_line == 1 )  {
                     O1 = "H" ; a = x1 + ( start_width < end_width ? end_width : start_width ) + edge_delta /2 ;  O2 = "V" ; b = y4  ; path_flag = 2;
                 
-                } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
-                    O1 = "V" ; a = y1 - ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
+                // } else if( (pos_s==3 || pos_s==1 ) && ( pos_e==3 ||pos_e==1 ) && almost_items_in_line == 1 )  { 
+                //     O1 = "V" ; a = y1 - ( start_height/2 + 5) ;  O2 = "H" ; b = x4  ; path_flag = 2;
 
                 
+                } else if( pos_s==1  && pos_e==3 )  { 
+                    O1 = "H" ; a = x1 + (x4-x1)/2 ; O2="V"; b=y4 ;path_flag = 2;                
+
                 } else if( pos_s==0  && pos_e==2 )  { 
                     O1 = "V" ; a = y1 - (y1-y4)/2 ; O2="H"; b=x4 ;path_flag = 2;
 
@@ -680,7 +696,7 @@ function draw_connecter(start, end ){
 
                 } else if( pos_s==1  && pos_e==3 )  { 
                     O1 = "H" ; a = x1 + (x4-x1)/2 ; O2="V"; b=y4 ;path_flag = 2;
-
+                
                 
                 } else if( (pos_s==2 ) && ( pos_e==3 || pos_e==1) && almost_items_in_line == 1 )  {
                     O1 = "H" ; a = x4 ; path_flag = 1;
@@ -818,8 +834,8 @@ function point_trace(){
                                     , "width" : rect.width 
                                     , "height" : rect.height};
 
-        x_items.set(curr_id , (rect.x - svgRect.x) );
-        y_items.set(curr_id , (rect.y - svgRect.y) );
+        // x_items.set(curr_id , (rect.x - svgRect.x) );
+        // y_items.set(curr_id , (rect.y - svgRect.y) );
 
         //find_closet(curr_id); 
 
