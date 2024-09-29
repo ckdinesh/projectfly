@@ -792,8 +792,6 @@ function draw_connecter(start, end ){
         
         console.log("Inside Draw_connecter : path_d : " + path_d);
 
-
-
     }
     const el = CE('path');
     SA(el, "id", `Path-${random()}`);
@@ -829,10 +827,13 @@ function point_trace(){
     for (let i = 0; i < collection.length; i++) {
         let rect = document.getElementById(collection[i].id).getBoundingClientRect();
         let curr_id = collection[i].id;
+        let item_type = GA(collection[i],"type");
+
         curr_item_postn[curr_id] = {  "x" : (rect.x - svgRect.x) 
                                     , "y" : (rect.y - svgRect.y)   
                                     , "width" : rect.width 
-                                    , "height" : rect.height};
+                                    , "height" : rect.height
+                                    , "type" : item_type};
 
         // x_items.set(curr_id , (rect.x - svgRect.x) );
         // y_items.set(curr_id , (rect.y - svgRect.y) );
@@ -1118,6 +1119,30 @@ class GridLayout {
 
         
     }
+}
+
+
+class IOref{
+
+
+    constructor(ioname ,iotype, operation){
+        this.ioname = ioname;
+        this.iotype = iotype;
+        this.operation= operation;
+    }
+
+    createJSON(){
+
+
+    }
+
+    JSONToObject(){
+
+    }
+
+
+
+
 }
 
 
