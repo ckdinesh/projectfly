@@ -84,10 +84,10 @@ function init(){
                 const grp_el = new Renderer(key, s.prep());  
                 console.log(grp_el);
                 svg.append(grp_el.draw());  
-            }
-                        
-    };     
-    
+            }         
+    };   
+
+    Renderer.redraw();
     console.log("Initializing complete...");   
     
 }
@@ -252,8 +252,46 @@ class Renderer {
             const grp = innerDisplay(e, this.data.name , this.data.x1 , this.data.y2  );
             return grp;
         }  
-        console.log(grp);
+        console.log(grp);        
+    }
+
+    static clone(){
+
+        const e = document.getElementById(currentElementSelection);
+        var svg = document.getElementById("mainlayout"); 
+        console.log("Inside clone() ");
+        if (e !== null){
+            
+            const cnode = e.cloneNode(true);
+            SA(cnode, "class" , "new-element itm");
+            SA(cnode,"id", random());
+            console.log(cnode);
+            svg.append(cnode);
+            currentElementSelection = GA(cnode,"id");
+            console.log("clone() : currentElementSelection :" +currentElementSelection + " , type : " + GA(cnode, "type"));
+            shape_pressed++;
+            console.log("shape_created : " + shape_pressed);
+            
+            return cnode;
+        }
         
+    }
+
+
+    static redraw(){
+
+        console.log("Inside Renderer : redraw() ");
+        // console.log("Stored value : " + localStorage.getItem('diastore'));
+        let diagram = IOref.ObjectToJSON(IOref.accessItLocal('diastore'));
+        console.log("Present Local Diagram : "  + diagram);
+        if(diagram != undefined){
+            console.log("Rendering from DIASTORE...");   
+
+
+    
+    
+        }  
+
     }
 
     static itemSelected(evt){
@@ -321,27 +359,7 @@ class Renderer {
 
 
 
-function create(){
 
-    const e = document.getElementById(currentElementSelection);
-    var svg = document.getElementById("mainlayout"); 
-    console.log("Inside create() ");
-    if (e !== null){
-        
-        const cnode = e.cloneNode(true);
-        SA(cnode, "class" , "new-element itm");
-        SA(cnode,"id", random());
-        console.log(cnode);
-        svg.append(cnode);
-        currentElementSelection = GA(cnode,"id");
-        console.log("create() : currentElementSelection :" +currentElementSelection + " , type : " + GA(cnode, "type"));
-        shape_pressed++;
-        console.log("shape_created : " + shape_pressed);
-        
-        return cnode;
-    }
-    
-}
     
 
 function SVGStartDrag(evt){
@@ -362,8 +380,8 @@ function SVGStartDrag(evt){
 
         //Create a new item when a palette item is selected for drag else drag item along the main layout.
         if (e.classList.contains('palette')){
-            // console.log("Inside SVGStartDrag : Calling create()")
-            selectedElement = create(); 
+            // console.log("Inside SVGStartDrag : Calling clone()")
+            selectedElement = Renderer.clone(); 
         } else {
             selectedElement  = e ;
         }
@@ -565,10 +583,10 @@ function SVGKeyPress(evt){
 
     }
     if ( evt.key === "L"){
-            localStorage.clear();
-            let htm = document.getElementById('mainlayout').innerHTML;
-            localStorage.setItem('htmtext', htm);           
-            const innerhtm = localStorage.getItem('htmtext');
+            // localStorage.clear();
+            // let htm = document.getElementById('mainlayout').innerHTML;
+            // localStorage.setItem('htmtext', htm);           
+            const innerhtm = localStorage.getItem('diastore');
             alert(innerhtm); 
      }
      if ( evt.key === "D"){
@@ -850,15 +868,8 @@ function point_trace(){
     //     console.log(curr_item_postn[key]);
     // }
 
-  
-    // x_items.forEach( function(value,key) {
-    //     console.log(" X_ITEMS : Point trace => " + key + " : " + value  );
-    // });
-    // y_items.forEach( function(value,key) {
-    //     console.log(" Y_ITEMS : Point trace => " + key + " : " + value  );
-    // });
-
-    
+    // alert(IOref.ObjectToJSON(curr_item_postn));
+    IOref.storeItLocal('diastore',curr_item_postn);
     
 }
 
@@ -867,9 +878,7 @@ function item_coord(id){
     if (id !== undefined){
 
         let rect = curr_item_postn[id];
-
         // console.log("Inside item_coord  : id : " + id ) 
-
         let tcoord= {};
 
         tcoord["x1"] = rect.x + (rect.width / 2);
@@ -1122,27 +1131,44 @@ class GridLayout {
 }
 
 
-class IOref{
+class IOref {
 
-
-    constructor(ioname ,iotype, operation){
-        this.ioname = ioname;
-        this.iotype = iotype;
-        this.operation= operation;
+    static ObjectToJSON(obj){
+        return JSON.stringify(obj);
     }
 
-    createJSON(){
-
-
+    static JSONToObject(jsonString){
+        return JSON.parse(jsonString);
     }
 
-    JSONToObject(){
+    static storeItLocal(keyname,obj){
 
+        console.log("Inside IOref.storeItLocal : keyname : " + keyname + ", obj : " + obj);
+
+        const jstr = JSON.stringify(obj);  
+        console.log(jstr);
+        if (typeof(Storage) !== "undefined") {   
+            localStorage.setItem(keyname,jstr);
+          } else {
+            console.log("Use cookie's to store");
+          } 
+          
+          
     }
 
+    static accessItLocal(keyname){
 
+        console.log("Inside IOref.accessItLocal : keyname : " + keyname);
 
-
+        if (typeof(Storage) !== "undefined") {   
+            let obj = JSON.parse(localStorage.getItem(keyname));
+            return obj;
+          } else {
+            console.log("Use cookie's to store");
+          } 
+          
+          
+    }
 }
 
 
